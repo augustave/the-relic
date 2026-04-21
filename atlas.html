@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>The Strategist's Atlas — Podcast Backdrop</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root {
+    --bg: #07090d;
+    --fg: #e8eef7;
+    --dim: #6b7687;
+    --line: rgba(120,140,170,0.18);
+    --c1: #7dd3fc; /* systems — cyan */
+    --c2: #fca5a5; /* wartime — red */
+    --c3: #fde68a; /* deep tech — amber */
+    --c4: #c4b5fd; /* cognition — violet */
+  }
+  html,body { margin:0; padding:0; height:100%; background:var(--bg); color:var(--fg);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; overflow:hidden; }
+  #stage { position:fixed; inset:0; display:block; }
+  .hud { position:fixed; pointer-events:none; color:var(--fg); z-index:5; }
+  .top-left { top:20px; left:24px; pointer-events:auto; }
+  .top-right { top:20px; right:24px; text-align:right; pointer-events:auto; }
+  .bottom { bottom:18px; left:24px; right:24px; display:flex; justify-content:space-between; align-items:flex-end; pointer-events:auto; }
+  .title { font-size:12px; letter-spacing:0.22em; text-transform:uppercase; color:var(--dim); }
+  .phase-name { font-size:22px; margin-top:6px; letter-spacing:0.04em; transition:color 500ms ease; }
+  .phase-sub { font-size:11px; color:var(--dim); margin-top:4px; letter-spacing:0.15em; text-transform:uppercase; }
+  .nav { display:flex; gap:8px; }
+  .nav button {
+    background:transparent; color:var(--dim); border:1px solid var(--line);
+    padding:6px 10px; font: inherit; font-size:10px; letter-spacing:0.18em;
+    text-transform:uppercase; cursor:pointer; transition: all 200ms ease;
+    border-radius:2px;
+  }
+  .nav button:hover { color:var(--fg); border-color:var(--fg); }
+  .nav button.active { color:var(--bg); background:var(--fg); border-color:var(--fg); }
+  .controls { display:flex; gap:14px; align-items:center; font-size:10px; letter-spacing:0.18em; color:var(--dim); text-transform:uppercase; }
+  .controls button {
+    background:transparent; color:var(--dim); border:1px solid var(--line);
+    padding:5px 9px; font:inherit; font-size:10px; letter-spacing:0.18em;
+    text-transform:uppercase; cursor:pointer; border-radius:2px;
+  }
+  .controls button:hover { color:var(--fg); border-color:var(--fg); }
+  .controls input[type=range] { width:120px; accent-color:var(--fg); }
+  .legend { font-size:10px; color:var(--dim); letter-spacing:0.15em; text-transform:uppercase; }
+  #tooltip {
+    position:fixed; pointer-events:none; z-index:10;
+    background:rgba(10,14,20,0.92); border:1px solid var(--line);
+    padding:10px 12px; font-size:11px; line-height:1.5;
+    max-width:260px; transform:translate(-50%, -120%);
+    opacity:0; transition:opacity 120ms ease;
+    backdrop-filter: blur(8px);
+  }
+  #tooltip .book-title { color:var(--fg); font-weight:500; letter-spacing:0.02em; }
+  #tooltip .book-author { color:var(--dim); font-size:10px; margin-top:2px; }
+  #tooltip .book-cat { font-size:9px; letter-spacing:0.2em; text-transform:uppercase; margin-top:6px; }
+  .progress { position:fixed; top:0; left:0; height:2px; background:var(--fg); opacity:0.6; transition:width 100ms linear; z-index:4; }
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+<div class="progress" id="progress"></div>
+
+<div class="hud top-left">
+  <div class="title">The Strategist's Atlas</div>
+  <div class="phase-name" id="phaseName">Swarm Coordination</div>
+  <div class="phase-sub" id="phaseSub">Systems Architecture</div>
+</div>
+
+<div class="hud top-right">
+  <div class="title">Phase</div>
+  <div class="nav" id="nav" style="margin-top:8px;"></div>
+</div>
+
+<div class="hud bottom">
+  <div class="legend" id="legend">20 volumes · 4 worlds</div>
+  <div class="controls">
+    <label>Speed <input id="speed" type="range" min="0.3" max="2.5" step="0.1" value="1"/></label>
+    <button id="togglePlay">Pause</button>
+    <button id="toggleAuto">Auto · On</button>
+  </div>
+</div>
+
+<div id="tooltip"></div>
+
+<script>
+const BOOKS = [
+  // Phase 0 — Systems Architecture & Swarm Coordination
+  { t:"Team of Teams", a:"Gen. Stanley McChrystal", c:0 },
+  { t:"Thinking in Systems", a:"Donella Meadows", c:0 },
+  { t:"The Sciences of the Artificial", a:"Herbert A. Simon", c:0 },
+  { t:"Scale", a:"Geoffrey West", c:0 },
+  { t:"A Pattern Language", a:"Christopher Alexander", c:0 },
+  // Phase 1 — Wartime Operations & Tactical Agility
+  { t:"Skunk Works", a:"Ben R. Rich & Leo Janos", c:1 },
+  { t:"Certain to Win", a:"Chet Richards", c:1 },
+  { t:"High Output Management", a:"Andy Grove", c:1 },
+  { t:"Zero to One", a:"Peter Thiel", c:1 },
+  { t:"The Sovereign Individual", a:"Davidson & Rees-Mogg", c:1 },
+  // Phase 2 — Deep Tech, Defense & Mega-Projects
+  { t:"The Making of the Atomic Bomb", a:"Richard Rhodes", c:2 },
+  { t:"Chip War", a:"Chris Miller", c:2 },
+  { t:"Ignition!", a:"John Drury Clark", c:2 },
+  { t:"Loonshots", a:"Safi Bahcall", c:2 },
+  { t:"The Master Algorithm", a:"Pedro Domingos", c:2 },
+  // Phase 3 — Cognitive Mechanics & Incentive Design
+  { t:"The Cold Start Problem", a:"Andrew Chen", c:3 },
+  { t:"Finite and Infinite Games", a:"James P. Carse", c:3 },
+  { t:"Gödel, Escher, Bach", a:"Douglas Hofstadter", c:3 },
+  { t:"Thinking, Fast and Slow", a:"Daniel Kahneman", c:3 },
+  { t:"Algorithms to Live By", a:"Christian & Griffiths", c:3 },
+];
+
+const PHASES = [
+  { name:"Swarm Coordination", sub:"Systems Architecture",         color:"#7dd3fc" },
+  { name:"Tactical Agility",   sub:"Wartime Operations",           color:"#fca5a5" },
+  { name:"Deep Tech Lattice",  sub:"Defense & Mega-Projects",      color:"#fde68a" },
+  { name:"Recursive Cognition",sub:"Incentive & Mental Models",    color:"#c4b5fd" },
+];
+
+const canvas = document.getElementById('stage');
+const ctx = canvas.getContext('2d');
+let W=0, H=0, DPR=Math.min(window.devicePixelRatio||1, 2);
+
+function resize(){
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W*DPR; canvas.height = H*DPR;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+window.addEventListener('resize', resize); resize();
+
+// ---------- Phase target-position generators (all normalized to canvas) ----------
+function center(){ return { cx:W/2, cy:H/2, r:Math.min(W,H)*0.34 }; }
+
+// Phase 0: Swarm / network — organic scattered cluster with long edges
+function targetsSwarm(){
+  const {cx,cy,r} = center();
+  const out=[];
+  for(let i=0;i<20;i++){
+    const angle = (i/20)*Math.PI*2 + Math.sin(i*1.7)*0.6;
+    const rad = r*(0.35 + 0.65*((i*13)%7)/6);
+    out.push({ x: cx + Math.cos(angle)*rad, y: cy + Math.sin(angle)*rad*0.75 });
+  }
+  return out;
+}
+
+// Phase 1: Radar / OODA — concentric arcs with tactical spread
+function targetsRadar(){
+  const {cx,cy,r} = center();
+  const out=[];
+  for(let i=0;i<20;i++){
+    const ring = Math.floor(i/5); // 4 rings of 5
+    const k = i%5;
+    const radius = r*(0.35 + ring*0.22);
+    const spread = Math.PI*0.9;
+    const ang = -Math.PI/2 - spread/2 + (k/4)*spread + ring*0.08;
+    out.push({ x: cx + Math.cos(ang)*radius, y: cy + Math.sin(ang)*radius });
+  }
+  return out;
+}
+
+// Phase 2: Crystalline lattice — 5x4 orthogonal grid, chip-like
+function targetsLattice(){
+  const {cx,cy,r} = center();
+  const cols=5, rows=4;
+  const gx = r*1.4/(cols-1);
+  const gy = r*1.05/(rows-1);
+  const out=[];
+  for(let i=0;i<20;i++){
+    const col=i%cols, row=Math.floor(i/cols);
+    out.push({ x: cx - r*0.7 + col*gx, y: cy - r*0.525 + row*gy });
+  }
+  return out;
+}
+
+// Phase 3: Recursive spiral — golden-angle strange loop
+function targetsSpiral(){
+  const {cx,cy,r} = center();
+  const out=[];
+  const golden = Math.PI*(3-Math.sqrt(5));
+  for(let i=0;i<20;i++){
+    const t = i/20;
+    const rad = r * (0.15 + 0.85*Math.sqrt(t));
+    const ang = i*golden;
+    out.push({ x: cx + Math.cos(ang)*rad, y: cy + Math.sin(ang)*rad });
+  }
+  return out;
+}
+
+const TARGETS = [targetsSwarm, targetsRadar, targetsLattice, targetsSpiral];
+
+// ---------- Nodes ----------
+const nodes = BOOKS.map((b,i) => ({
+  book: b, idx:i,
+  x: Math.random()*W, y: Math.random()*H,
+  vx:0, vy:0,
+  tx:0, ty:0,
+  pulse: Math.random()*Math.PI*2,
+  hover:false,
+}));
+
+function recomputeTargets(){
+  const t = TARGETS.map(fn => fn());
+  return t;
+}
+let allTargets = recomputeTargets();
+window.addEventListener('resize', () => { allTargets = recomputeTargets(); });
+
+// ---------- Phase state ----------
+let phase = 0;          // current phase index
+let phaseFrom = 0;      // transition source
+let phaseTo = 0;        // transition dest
+let morph = 1;          // 0..1 easing from phaseFrom -> phaseTo
+let autoPlay = true;
+let running = true;
+let speed = 1;
+const PHASE_DURATION = 11000; // ms per phase
+const MORPH_DURATION = 2200;  // ms of morph
+let phaseStart = performance.now();
+let morphStart = performance.now();
+
+function easeInOut(t){ return t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2; }
+function lerp(a,b,t){ return a + (b-a)*t; }
+function hexToRgb(hex){
+  const h = hex.replace('#',''); const n = parseInt(h,16);
+  return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 };
+}
+function mixColor(c1,c2,t){
+  const A=hexToRgb(c1), B=hexToRgb(c2);
+  return `rgb(${Math.round(lerp(A.r,B.r,t))},${Math.round(lerp(A.g,B.g,t))},${Math.round(lerp(A.b,B.b,t))})`;
+}
+
+function goToPhase(next, immediate=false){
+  if (next === phaseTo && !immediate) return;
+  phaseFrom = phaseTo;
+  phaseTo = next;
+  morphStart = performance.now();
+  morph = 0;
+  phaseStart = performance.now();
+  updateNav();
+  updateHUD();
+}
+
+// ---------- Render ----------
+function drawConnections(phaseIdx, positions, alpha, color){
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 0.7;
+
+  if (phaseIdx === 0){
+    // Swarm — proximity network
+    for(let i=0;i<20;i++){
+      for(let j=i+1;j<20;j++){
+        const dx=positions[i].x-positions[j].x, dy=positions[i].y-positions[j].y;
+        const d=Math.hypot(dx,dy);
+        const thresh = Math.min(W,H)*0.22;
+        if(d<thresh){
+          ctx.globalAlpha = alpha*(1 - d/thresh)*0.8;
+          ctx.beginPath(); ctx.moveTo(positions[i].x,positions[i].y); ctx.lineTo(positions[j].x,positions[j].y); ctx.stroke();
+        }
+      }
+    }
+  } else if (phaseIdx === 1){
+    // Radar — concentric rings + sweep
+    const {cx,cy,r} = center();
+    ctx.globalAlpha = alpha*0.25;
+    for(let k=1;k<=4;k++){
+      ctx.beginPath(); ctx.arc(cx,cy,r*(0.35 + (k-1)*0.22),0,Math.PI*2); ctx.stroke();
+    }
+    // crosshairs
+    ctx.beginPath();
+    ctx.moveTo(cx-r*1.1,cy); ctx.lineTo(cx+r*1.1,cy);
+    ctx.moveTo(cx,cy-r*0.9); ctx.lineTo(cx,cy+r*0.9);
+    ctx.stroke();
+    // sweep line
+    const t = (performance.now()/2200)%1;
+    const ang = -Math.PI/2 + t*Math.PI*2;
+    const grad = ctx.createLinearGradient(cx,cy,cx+Math.cos(ang)*r*1.1,cy+Math.sin(ang)*r*1.1);
+    grad.addColorStop(0, color);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.strokeStyle = grad; ctx.globalAlpha = alpha*0.9; ctx.lineWidth=1.2;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(ang)*r*1.1,cy+Math.sin(ang)*r*1.1); ctx.stroke();
+  } else if (phaseIdx === 2){
+    // Lattice — orthogonal grid traces
+    ctx.globalAlpha = alpha*0.55;
+    const cols=5, rows=4;
+    // horizontals
+    for(let row=0;row<rows;row++){
+      ctx.beginPath();
+      ctx.moveTo(positions[row*cols].x,positions[row*cols].y);
+      for(let col=1;col<cols;col++){
+        const p = positions[row*cols+col];
+        ctx.lineTo(p.x,p.y);
+      }
+      ctx.stroke();
+    }
+    // verticals
+    for(let col=0;col<cols;col++){
+      ctx.beginPath();
+      ctx.moveTo(positions[col].x,positions[col].y);
+      for(let row=1;row<rows;row++){
+        const p = positions[row*cols+col];
+        ctx.lineTo(p.x,p.y);
+      }
+      ctx.stroke();
+    }
+  } else if (phaseIdx === 3){
+    // Spiral — sequential connections as recursion
+    ctx.globalAlpha = alpha*0.6;
+    ctx.beginPath();
+    ctx.moveTo(positions[0].x, positions[0].y);
+    for(let i=1;i<20;i++){
+      const p0 = positions[i-1], p1 = positions[i];
+      const {cx,cy} = center();
+      const mx = (p0.x+p1.x)/2 + (cx-(p0.x+p1.x)/2)*0.35;
+      const my = (p0.y+p1.y)/2 + (cy-(p0.y+p1.y)/2)*0.35;
+      ctx.quadraticCurveTo(mx,my,p1.x,p1.y);
+    }
+    ctx.stroke();
+    // self-reference loop closing
+    ctx.globalAlpha = alpha*0.25;
+    ctx.beginPath(); ctx.moveTo(positions[19].x,positions[19].y);
+    ctx.quadraticCurveTo(center().cx, center().cy, positions[0].x, positions[0].y);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawBackdrop(color){
+  // subtle radial glow
+  const {cx,cy} = center();
+  const g = ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(W,H)*0.7);
+  g.addColorStop(0, 'rgba(255,255,255,0.035)');
+  g.addColorStop(0.3, 'rgba(255,255,255,0.012)');
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  // tint
+  const cg = ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(W,H)*0.6);
+  const c = hexToRgb(color);
+  cg.addColorStop(0, `rgba(${c.r},${c.g},${c.b},0.08)`);
+  cg.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = cg; ctx.fillRect(0,0,W,H);
+}
+
+let mouse = { x:-9999, y:-9999 };
+canvas.addEventListener('mousemove', e => {
+  const r = canvas.getBoundingClientRect();
+  mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top;
+});
+canvas.addEventListener('mouseleave', () => { mouse.x=-9999; mouse.y=-9999; });
+
+const tooltip = document.getElementById('tooltip');
+
+function frame(now){
+  // phase auto-advance
+  if (running){
+    const elapsed = now - phaseStart;
+    if (autoPlay && elapsed > PHASE_DURATION){
+      goToPhase((phaseTo+1)%4);
+    }
+    morph = Math.min(1, (now - morphStart) / MORPH_DURATION);
+  }
+
+  const mf = easeInOut(morph);
+  const fromColor = PHASES[phaseFrom].color;
+  const toColor = PHASES[phaseTo].color;
+  const currentColor = mixColor(fromColor, toColor, mf);
+
+  // clear with slight trail
+  ctx.fillStyle = 'rgba(7,9,13,0.35)';
+  ctx.fillRect(0,0,W,H);
+
+  drawBackdrop(currentColor);
+
+  // compute interpolated positions
+  const targetsFrom = allTargets[phaseFrom];
+  const targetsTo   = allTargets[phaseTo];
+  const positions = nodes.map((n,i) => ({
+    x: lerp(targetsFrom[i].x, targetsTo[i].x, mf),
+    y: lerp(targetsFrom[i].y, targetsTo[i].y, mf),
+  }));
+
+  // integrate nodes toward positions with light spring
+  const dt = 1/60 * speed;
+  for(let i=0;i<nodes.length;i++){
+    const n = nodes[i], p = positions[i];
+    const ax = (p.x - n.x)*6.0 - n.vx*3.0;
+    const ay = (p.y - n.y)*6.0 - n.vy*3.0;
+    n.vx += ax*dt; n.vy += ay*dt;
+    n.x += n.vx*dt; n.y += n.vy*dt;
+    n.pulse += dt*2.2;
+  }
+
+  // connections — crossfade between from/to structures
+  drawConnections(phaseFrom, nodes, (1-mf)*0.9, fromColor);
+  drawConnections(phaseTo, nodes, mf*0.9, toColor);
+
+  // nodes
+  let hoverIdx = -1, hoverDist = 18;
+  for(let i=0;i<nodes.length;i++){
+    const n = nodes[i];
+    const d = Math.hypot(n.x-mouse.x, n.y-mouse.y);
+    if (d < hoverDist){ hoverDist = d; hoverIdx = i; }
+  }
+
+  for(let i=0;i<nodes.length;i++){
+    const n = nodes[i];
+    const book = n.book;
+    const bookColor = PHASES[book.c].color;
+    // base node color = its own category color, slightly biased toward current phase
+    const nodeColor = mixColor(bookColor, currentColor, 0.25);
+
+    const isActivePhase = (book.c === phaseTo);
+    const intensity = isActivePhase ? 1 : 0.55;
+    const radius = 2.6 + Math.sin(n.pulse + i)*0.6 + (isActivePhase?1.2:0);
+
+    // halo
+    const hg = ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,radius*7);
+    const rgb = hexToRgb(nodeColor);
+    hg.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},${0.38*intensity})`);
+    hg.addColorStop(1, `rgba(${rgb.r},${rgb.g},${rgb.b},0)`);
+    ctx.fillStyle = hg;
+    ctx.beginPath(); ctx.arc(n.x,n.y,radius*7,0,Math.PI*2); ctx.fill();
+
+    // core
+    ctx.fillStyle = nodeColor;
+    ctx.beginPath(); ctx.arc(n.x,n.y,radius,0,Math.PI*2); ctx.fill();
+
+    if (i === hoverIdx){
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(n.x,n.y,radius+5,0,Math.PI*2); ctx.stroke();
+    }
+  }
+
+  // tooltip
+  if (hoverIdx >= 0){
+    const n = nodes[hoverIdx];
+    const b = n.book;
+    tooltip.innerHTML = `
+      <div class="book-title">${b.t}</div>
+      <div class="book-author">${b.a}</div>
+      <div class="book-cat" style="color:${PHASES[b.c].color}">${PHASES[b.c].sub}</div>
+    `;
+    tooltip.style.left = n.x + 'px';
+    tooltip.style.top  = (n.y - 12) + 'px';
+    tooltip.style.opacity = 1;
+  } else {
+    tooltip.style.opacity = 0;
+  }
+
+  // progress bar
+  const prog = running && autoPlay
+    ? Math.min(1, (now - phaseStart)/PHASE_DURATION)
+    : 0;
+  document.getElementById('progress').style.width = (prog*100)+'%';
+  document.getElementById('progress').style.background = currentColor;
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// ---------- HUD ----------
+function updateHUD(){
+  const p = PHASES[phaseTo];
+  document.getElementById('phaseName').textContent = p.name;
+  document.getElementById('phaseSub').textContent = p.sub;
+  document.getElementById('phaseName').style.color = p.color;
+}
+function buildNav(){
+  const nav = document.getElementById('nav');
+  nav.innerHTML = '';
+  PHASES.forEach((p,i) => {
+    const b = document.createElement('button');
+    b.textContent = `0${i+1}`;
+    b.title = p.name;
+    b.addEventListener('click', () => { goToPhase(i); });
+    nav.appendChild(b);
+  });
+}
+function updateNav(){
+  [...document.querySelectorAll('#nav button')].forEach((b,i) => {
+    b.classList.toggle('active', i===phaseTo);
+    b.style.borderColor = i===phaseTo ? PHASES[i].color : '';
+    b.style.background  = i===phaseTo ? PHASES[i].color : '';
+    b.style.color       = i===phaseTo ? '#07090d' : '';
+  });
+}
+buildNav(); updateNav(); updateHUD();
+
+document.getElementById('togglePlay').addEventListener('click', e => {
+  running = !running;
+  e.target.textContent = running ? 'Pause' : 'Play';
+  if (running){ phaseStart = performance.now() - 0; morphStart = performance.now() - morph*MORPH_DURATION; }
+});
+document.getElementById('toggleAuto').addEventListener('click', e => {
+  autoPlay = !autoPlay;
+  e.target.textContent = autoPlay ? 'Auto · On' : 'Auto · Off';
+  if (autoPlay) phaseStart = performance.now();
+});
+document.getElementById('speed').addEventListener('input', e => {
+  speed = parseFloat(e.target.value);
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === ' '){ document.getElementById('togglePlay').click(); e.preventDefault(); }
+  if (e.key === 'ArrowRight'){ goToPhase((phaseTo+1)%4); }
+  if (e.key === 'ArrowLeft'){ goToPhase((phaseTo+3)%4); }
+  if (['1','2','3','4'].includes(e.key)){ goToPhase(parseInt(e.key)-1); }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>THE RELIC · Specimen 001</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IM+Fell+English+SC&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #ebe0bd;
+    --paper-shadow: #c9bc8c;
+    --ink: #1a140c;
+    --ink-dust: #3a2f20;
+    --navy: #1c2a4a;
+    --rust: #a13418;
+    --rust-deep: #6b2210;
+    --mustard: #f5c518;
+    --mustard-hot: #ffd528;
+    --pen: #1c3a86;
+    --pen-smear: #2f4fb3;
+    --rule: rgba(60,90,150,0.18);
+    --tape: rgba(245,238,210,0.55);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;overflow:hidden;}
+  body{
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Courier Prime", "Courier New", ui-monospace, monospace;
+    position:relative;
+  }
+
+  /* PAPER: ledger rules + grain + foxing */
+  .paper-rules{
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      repeating-linear-gradient(to bottom, transparent 0 27px, var(--rule) 27px 28px);
+    opacity:0.55;
+  }
+  .paper-grain{
+    position:fixed;inset:-20px;z-index:1;pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.12  0 0 0 0 0.09  0 0 0 0 0.05  0 0 0 0.38 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode:multiply;opacity:0.35;
+  }
+  .paper-foxing{
+    position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:
+      radial-gradient(ellipse 400px 200px at 18% 12%, rgba(145,95,40,0.12), transparent 70%),
+      radial-gradient(ellipse 300px 240px at 88% 82%, rgba(120,75,25,0.14), transparent 70%),
+      radial-gradient(ellipse 260px 180px at 92% 18%, rgba(145,95,40,0.08), transparent 70%),
+      radial-gradient(ellipse 200px 220px at 8% 88%, rgba(100,60,20,0.10), transparent 70%);
+    mix-blend-mode:multiply;
+  }
+  .paper-vignette{
+    position:fixed;inset:0;z-index:1;pointer-events:none;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(40,25,10,0.28) 120%);
+  }
+
+  #stage{position:fixed;inset:0;z-index:2;}
+
+  /* DECORATIVE FIXED ITEMS: stamps, engraved icons, tape, marks */
+  .deco{position:fixed;z-index:3;pointer-events:none;}
+  .eagle{
+    top:26px;right:28px;width:120px;height:120px;opacity:0.18;
+    filter:sepia(0.4) contrast(1.1);
+    transform:rotate(-4deg);
+  }
+  .shield{
+    bottom:34px;left:40px;width:90px;height:110px;opacity:0.14;
+    transform:rotate(3deg);
+  }
+  .specimen-stamp{
+    top:calc(50% - 40px);right:44px;
+    transform:rotate(-11deg);
+    border:2px solid var(--rust);
+    color:var(--rust);
+    padding:8px 14px;
+    font-family:"IM Fell English SC", serif;
+    letter-spacing:0.18em;
+    font-size:14px;
+    opacity:0.62;
+    box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5px var(--rust);
+    background:transparent;
+  }
+  .specimen-stamp .sub{font-size:9px;letter-spacing:0.3em;display:block;margin-top:2px;}
+
+  .classified{
+    top:16%;left:40%;
+    transform:rotate(6deg);
+    border:1.5px solid var(--rust-deep);
+    color:var(--rust-deep);
+    padding:4px 10px;
+    font-family:"IM Fell English SC", serif;
+    font-size:11px;letter-spacing:0.3em;
+    opacity:0.4;
+  }
+  .coffee-ring{
+    position:fixed;z-index:2;pointer-events:none;
+    width:140px;height:140px;border-radius:50%;
+    border:6px solid rgba(120,75,30,0.16);
+    box-shadow:
+      inset 0 0 0 2px rgba(120,75,30,0.08),
+      inset 2px -3px 8px rgba(80,45,10,0.12),
+      0 0 0 8px rgba(160,110,55,0.04);
+    background: radial-gradient(circle at 40% 40%, rgba(180,130,60,0.06), transparent 60%);
+    filter: blur(0.4px);
+    top:58%;right:14%;transform:rotate(-12deg);
+  }
+  .coffee-ring-2{top:22%;left:46%;width:90px;height:90px;border-width:4px;opacity:0.6;transform:rotate(8deg);}
+  .forming-stamp{
+    position:fixed;z-index:5;pointer-events:none;
+    top:38%;left:52%;
+    transform:translate(-50%,-50%) rotate(-14deg);
+    border:3px double var(--rust);
+    color:var(--rust);
+    padding:10px 22px;
+    font-family:"IM Fell English SC", serif;
+    font-size:20px;letter-spacing:0.3em;
+    opacity:0;transition:opacity 1400ms ease;
+    box-shadow: inset 0 0 0 6px var(--paper), inset 0 0 0 7px var(--rust);
+    text-shadow: 1px 0 0 rgba(28,58,134,0.45), -1px 0 0 rgba(245,197,24,0.55);
+  }
+  .forming-stamp .sub{display:block;font-size:9px;letter-spacing:0.36em;margin-top:4px;}
+
+  .tape{
+    position:fixed;z-index:4;pointer-events:none;
+    background: var(--tape);
+    border-left:1px dashed rgba(0,0,0,0.08);
+    border-right:1px dashed rgba(0,0,0,0.08);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    mix-blend-mode:multiply;
+  }
+  .tape-1{top:-8px;left:22%;width:92px;height:26px;transform:rotate(-6deg);}
+  .tape-2{top:-10px;right:14%;width:78px;height:22px;transform:rotate(4deg);}
+  .tape-3{bottom:-8px;left:58%;width:110px;height:24px;transform:rotate(-3deg);}
+
+  .pen-scribble{
+    position:fixed;z-index:3;pointer-events:none;opacity:0.5;
+    color:var(--pen);
+  }
+
+  /* HUD cards */
+  .hud{position:fixed;z-index:6;}
+  .top{top:22px;left:24px;right:24px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px;pointer-events:none;}
+  .top > *{pointer-events:auto;}
+  .bottom{bottom:22px;left:24px;right:24px;display:flex;justify-content:space-between;gap:20px;align-items:flex-end;pointer-events:none;}
+  .bottom > *{pointer-events:auto;}
+
+  .card{
+    background: var(--paper);
+    border: 1px solid rgba(26,20,12,0.35);
+    padding: 14px 16px 12px;
+    position:relative;
+    box-shadow:
+      0 1px 0 rgba(0,0,0,0.08),
+      2px 4px 0 rgba(100,70,25,0.12);
+    font-family:"Courier Prime", monospace;
+    color:var(--ink);
+  }
+  .card::before, .card::after{
+    content:"";position:absolute;width:58px;height:18px;
+    background:var(--tape);
+    border-left:1px dashed rgba(0,0,0,0.1);
+    border-right:1px dashed rgba(0,0,0,0.1);
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+    mix-blend-mode:multiply;
+  }
+  .card::before{top:-10px;left:18px;transform:rotate(-4deg);}
+  .card::after{top:-8px;right:22px;transform:rotate(5deg);}
+
+  .card-title{
+    font-family:"IM Fell English SC", serif;
+    color:var(--navy);
+    font-size:22px;letter-spacing:0.04em;
+    line-height:1;
+    text-shadow: 1px 0 0 rgba(161,52,24,0.35), -1px 0 0 rgba(245,197,24,0.35);
+  }
+  .kicker{
+    font-family:"Special Elite", "Courier Prime", monospace;
+    font-size:10px;letter-spacing:0.26em;text-transform:uppercase;
+    color:var(--ink-dust);
+    margin-bottom:4px;
+  }
+  .sub{
+    font-family:"Special Elite", monospace;
+    font-size:10px;color:var(--ink-dust);
+    letter-spacing:0.08em;margin-top:6px;
+  }
+  .rule-line{height:1px;background:var(--ink);opacity:0.4;margin:10px 0;border:0;}
+
+  .stamp-btn{
+    font-family:"IM Fell English SC", serif;
+    font-size:11px;letter-spacing:0.22em;
+    text-transform:uppercase;
+    color:var(--rust);
+    background:transparent;
+    border:1.5px solid var(--rust);
+    padding:4px 9px;
+    cursor:pointer;
+    transition: transform 120ms ease;
+    box-shadow: inset 0 0 0 2px var(--paper), inset 0 0 0 3px var(--rust);
+  }
+  .stamp-btn:hover{transform:rotate(-1.5deg) translateY(-1px);}
+  .stamp-btn.active{background:var(--rust);color:var(--paper);
+    box-shadow: inset 0 0 0 2px var(--rust);}
+  .stamp-btn.navy{color:var(--navy);border-color:var(--navy);
+    box-shadow: inset 0 0 0 2px var(--paper), inset 0 0 0 3px var(--navy);}
+  .stamp-btn.navy.active{background:var(--navy);color:var(--paper);
+    box-shadow: inset 0 0 0 2px var(--navy);}
+
+  .row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;}
+
+  .mode-row button{border-radius:0;}
+
+  .heard-label{
+    font-family:"Special Elite", monospace;
+    font-size:13px;color:var(--ink);letter-spacing:0.08em;
+    background:var(--mustard);
+    padding:1px 7px;
+    transform:rotate(-1deg);
+    display:inline-block;
+  }
+  input[type=range]{
+    appearance:none;-webkit-appearance:none;background:transparent;width:180px;
+  }
+  input[type=range]::-webkit-slider-runnable-track{
+    height:2px;background:var(--ink);border-radius:0;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;height:14px;width:14px;
+    background:var(--rust);border:1.5px solid var(--ink);
+    border-radius:50%;margin-top:-6px;cursor:pointer;
+  }
+  input[type=range]::-moz-range-track{height:2px;background:var(--ink);}
+  input[type=range]::-moz-range-thumb{height:14px;width:14px;background:var(--rust);border:1.5px solid var(--ink);border-radius:50%;cursor:pointer;}
+
+  .emergence{
+    font-family:"Special Elite", monospace;
+    font-size:11px;color:var(--rust-deep);
+    letter-spacing:0.08em;min-height:16px;margin-top:6px;
+    background:var(--mustard-hot);
+    display:inline-block;padding:1px 6px;
+    transform:rotate(-0.8deg);
+    max-width:100%;
+    box-shadow: 2px 2px 0 rgba(100,70,25,0.25);
+  }
+  .emergence:empty{display:none;}
+
+  .legend-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-dust);margin-top:4px;}
+  .legend-item .sw{width:16px;height:10px;display:inline-block;}
+  .sw.tile{background:var(--rust);border:1px solid var(--rust-deep);}
+  .sw.heard{background:var(--pen);border-radius:50%;width:10px;height:10px;}
+  .sw.ghost{background:transparent;border:1px dashed var(--ink-dust);border-radius:50%;width:10px;height:10px;}
+  .sw.bridge{background:var(--mustard-hot);border:1px solid var(--rust);}
+
+  .stats{text-align:right;}
+  .stat-line{font-family:"Special Elite",monospace;font-size:11px;color:var(--ink-dust);letter-spacing:0.06em;display:flex;justify-content:flex-end;gap:10px;margin-top:2px;}
+  .stat-n{color:var(--navy);font-weight:700;min-width:28px;display:inline-block;text-align:right;font-size:13px;}
+
+  .hint{font-family:"Special Elite",monospace;font-size:10px;color:var(--ink-dust);margin-top:8px;letter-spacing:0.04em;opacity:0.85;}
+
+  #tooltip,#detail{
+    position:fixed;z-index:20;
+    background:var(--paper);
+    border:1px solid var(--ink);
+    padding:10px 12px;
+    font-family:"Courier Prime",monospace;
+    font-size:11px;line-height:1.55;max-width:320px;
+    color:var(--ink);
+    box-shadow: 3px 4px 0 rgba(100,70,25,0.25);
+    opacity:0;pointer-events:none;transition:opacity 120ms ease;
+    transform:rotate(-1deg);
+  }
+  #detail{pointer-events:auto;transform:rotate(-0.5deg);}
+  #tooltip::before{
+    content:"";position:absolute;top:-6px;left:18px;width:40px;height:12px;
+    background:var(--tape);transform:rotate(-4deg);
+    box-shadow:0 1px 3px rgba(0,0,0,0.1);mix-blend-mode:multiply;
+  }
+  .tip-label{font-family:"Special Elite",monospace;font-size:9px;letter-spacing:0.22em;color:var(--rust);text-transform:uppercase;}
+  .tip-title{font-family:"IM Fell English SC",serif;font-size:14px;color:var(--navy);margin-top:2px;letter-spacing:0.02em;
+    text-shadow: 0.5px 0 0 rgba(161,52,24,0.35), -0.5px 0 0 rgba(245,197,24,0.35);}
+  .tip-meta{color:var(--ink-dust);margin-top:6px;font-size:10px;}
+  .chip{
+    display:inline-block;padding:2px 6px;margin:2px 2px 0 0;font-size:10px;
+    font-family:"Special Elite",monospace;letter-spacing:0.06em;
+    border:1px solid var(--ink-dust);background:var(--paper);
+    color:var(--ink);
+  }
+  .chip.anchor{border-color:var(--rust);color:var(--rust);background:rgba(245,197,24,0.25);}
+  .chip.bridge{border-color:var(--navy);color:var(--navy);background:rgba(28,58,134,0.08);}
+  .chip.highlight{background:var(--mustard-hot);border-color:var(--rust-deep);color:var(--ink);}
+  .close{float:right;cursor:pointer;font-family:"IM Fell English SC",serif;font-size:16px;line-height:1;color:var(--rust);margin-left:8px;}
+
+  .progress-wrap{position:fixed;top:0;left:0;right:0;height:3px;z-index:7;background:transparent;}
+  .progress{height:100%;background:var(--rust);opacity:0.7;}
+
+  /* SPECIMEN NUMBER CORNER */
+  .corner-spec{
+    position:fixed;top:18px;left:22px;z-index:7;
+    font-family:"Special Elite",monospace;font-size:10px;color:var(--ink-dust);
+    letter-spacing:0.2em;
+    transform:rotate(-1deg);
+    background:var(--paper);padding:2px 6px;
+    border:1px solid var(--ink-dust);
+    box-shadow: 2px 2px 0 rgba(100,70,25,0.18);
+    display:none; /* positioned inside card instead */
+  }
+</style>
+</head>
+<body>
+
+<div class="paper-rules"></div>
+<div class="paper-grain"></div>
+<div class="paper-foxing"></div>
+
+<canvas id="stage"></canvas>
+
+<!-- ENGRAVED EAGLE -->
+<svg class="deco eagle" viewBox="0 0 120 120" aria-hidden="true">
+  <g fill="none" stroke="#1a140c" stroke-width="0.6">
+    <circle cx="60" cy="60" r="52"/>
+    <circle cx="60" cy="60" r="48" stroke-dasharray="2,2"/>
+    <path d="M60 28 Q48 40 32 44 Q44 48 48 62 Q52 52 60 54 Q68 52 72 62 Q76 48 88 44 Q72 40 60 28 Z"/>
+    <path d="M60 54 L60 86"/>
+    <path d="M52 64 L48 74 M68 64 L72 74 M54 70 L46 82 M66 70 L74 82"/>
+    <path d="M54 86 L66 86 L64 94 L56 94 Z"/>
+    <circle cx="57" cy="36" r="0.8" fill="#1a140c"/>
+    <path d="M50 90 L70 90 M48 94 L72 94" stroke-width="0.4"/>
+  </g>
+  <text x="60" y="112" text-anchor="middle" font-family="IM Fell English SC, serif" font-size="6" fill="#1a140c" letter-spacing="2">E PLURIBUS</text>
+</svg>
+
+<!-- ENGRAVED SHIELD -->
+<svg class="deco shield" viewBox="0 0 90 110" aria-hidden="true">
+  <g fill="none" stroke="#1a140c" stroke-width="0.6">
+    <path d="M8 10 L82 10 L82 60 Q82 88 45 102 Q8 88 8 60 Z"/>
+    <path d="M8 28 L82 28"/>
+    <g stroke-width="0.3">
+      <path d="M14 34 L76 34 M14 38 L76 38 M14 42 L76 42 M14 46 L76 46 M14 50 L76 50 M14 54 L76 54"/>
+      <path d="M18 62 L24 62 M30 62 L36 62 M42 62 L48 62 M54 62 L60 62 M66 62 L72 62"/>
+      <path d="M14 70 L76 70 M16 76 L74 76 M18 82 L72 82 M22 88 L68 88 M30 94 L60 94"/>
+    </g>
+    <g stroke-width="0.4">
+      <path d="M20 14 L25 14 M30 14 L35 14 M40 14 L45 14 M50 14 L55 14 M60 14 L65 14 M70 14 L75 14"/>
+      <path d="M15 20 L20 20 M25 20 L30 20 M35 20 L40 20 M45 20 L50 20 M55 20 L60 20 M65 20 L70 20 M75 20 L80 20"/>
+    </g>
+  </g>
+</svg>
+
+<!-- SPECIMEN STAMP -->
+<div class="deco specimen-stamp">SPECIMEN № 001<span class="sub">Ep. Artifact · Relic Proto</span></div>
+<div class="deco classified">NOT FOR CIRCULATION</div>
+
+<!-- COFFEE RINGS -->
+<div class="deco coffee-ring"></div>
+<div class="deco coffee-ring coffee-ring-2"></div>
+
+<!-- TAPE STRIPS (page-level) -->
+<div class="tape tape-1"></div>
+<div class="tape tape-2"></div>
+<div class="tape tape-3"></div>
+
+<!-- BALLPOINT DOODLES -->
+<svg class="pen-scribble" style="top:32%;left:3%;width:70px;height:90px;" viewBox="0 0 70 90">
+  <g fill="none" stroke="#1c3a86" stroke-width="1.2" stroke-linecap="round">
+    <path d="M12 10 Q28 22 14 38 Q2 50 18 64 Q32 74 14 84" stroke-width="1"/>
+    <path d="M40 18 Q52 30 42 46" />
+    <circle cx="55" cy="60" r="8"/>
+    <circle cx="55" cy="60" r="4"/>
+    <path d="M30 76 L46 84 M32 80 L46 80"/>
+  </g>
+</svg>
+<svg class="pen-scribble" style="bottom:12%;right:8%;width:90px;height:70px;transform:rotate(8deg);" viewBox="0 0 90 70">
+  <g fill="none" stroke="#1c3a86" stroke-width="1" stroke-linecap="round">
+    <path d="M6 40 Q20 20 40 32 Q58 44 76 28" />
+    <path d="M10 50 L80 50" stroke-dasharray="3,4"/>
+    <path d="M60 8 L82 8 L82 26 L60 26 Z"/>
+    <path d="M64 14 L78 14 M64 18 L78 18 M64 22 L72 22"/>
+  </g>
+</svg>
+
+<!-- HUD -->
+<div class="hud top">
+  <div class="card" style="min-width:280px;transform:rotate(-0.8deg);">
+    <div class="kicker">Specimen № 001 · Episode Artifact</div>
+    <div class="card-title">THE RELIC</div>
+    <div class="sub">a podcast dissolves · a knowledge object remains</div>
+    <hr class="rule-line"/>
+    <div class="kicker" style="margin-bottom:2px;">Mode</div>
+    <div class="row mode-row">
+      <button id="modePersonal" class="stamp-btn active">Personal</button>
+      <button id="modeCanonical" class="stamp-btn navy">Canonical</button>
+    </div>
+    <div class="kicker" style="margin-top:14px;">Episodes Heard</div>
+    <div class="row" style="margin-top:4px;">
+      <input id="heardRange" type="range" min="1" max="50" value="5"/>
+      <span id="heardLabel" class="heard-label">05 / 50</span>
+    </div>
+    <div class="row">
+      <button class="stamp-btn navy" data-jump="1">Ep 01</button>
+      <button class="stamp-btn navy" data-jump="5">05</button>
+      <button class="stamp-btn navy" data-jump="10">10</button>
+      <button class="stamp-btn navy" data-jump="25">25</button>
+      <button class="stamp-btn navy" data-jump="50">50</button>
+    </div>
+    <div id="emergence" class="emergence"></div>
+    <hr class="rule-line"/>
+    <div class="kicker">Reveal</div>
+    <div class="row">
+      <button id="revealBtn" class="stamp-btn">Dissolve the Podcast</button>
+      <button id="exportBtn" class="stamp-btn navy">Export</button>
+    </div>
+    <div class="hint">Click a node · tiles open their card · concepts list every episode that touched them.</div>
+  </div>
+
+  <div style="width:160px;"></div>
+</div>
+
+<div class="hud bottom">
+  <div class="card" style="transform:rotate(0.6deg);">
+    <div class="kicker" style="margin-bottom:6px;">Legend</div>
+    <div class="legend-item"><span class="sw tile"></span>Episode tile · rubber stamp</div>
+    <div class="legend-item"><span class="sw heard"></span>Concept · heard (ballpoint)</div>
+    <div class="legend-item"><span class="sw ghost"></span>Concept · ghost (unheard)</div>
+    <div class="legend-item"><span class="sw bridge"></span>Emergent bridge (≥3 episodes)</div>
+  </div>
+  <div class="card stats" style="transform:rotate(-0.7deg);">
+    <div class="kicker" style="margin-bottom:6px;">Relic State</div>
+    <div class="stat-line"><span>Tiles docked</span><span class="stat-n" id="tileCount">00</span></div>
+    <div class="stat-line"><span>Concepts</span><span class="stat-n" id="conceptCount">00</span></div>
+    <div class="stat-line"><span>Emergent bridges</span><span class="stat-n" id="bridgeCount">00</span></div>
+  </div>
+</div>
+
+<div id="formingStamp" class="forming-stamp">RELIC FORMING<span class="sub">specimen crystallizing</span></div>
+
+<div id="tooltip"></div>
+<div id="detail"></div>
+
+<script>
+// -------------------------------------------------------------
+// CONCEPT POOL
+// -------------------------------------------------------------
+const CONCEPTS = {
+  SCA:"Scaling Laws", FBK:"Feedback Loops", EMG:"Emergence",
+  SUB:"Sublinear Scaling", SUP:"Superlinear Scaling", SYS:"Systems Theory",
+  OOD:"OODA Loop", ORI:"Orientation", FTR:"Fast Transients", SNO:"Snowmobiling",
+  TAC:"Tactical Agility", DEC:"Decentralized Command", TEA:"Team of Teams",
+  CHP:"Chip War", TSM:"TSMC", MEG:"Mega-Projects", HDW:"Hardware Dependence",
+  GTH:"Game Theory", FIN:"Finite Games", INF:"Infinite Games",
+  CLD:"Cold Start Problem", NET:"Network Effects",
+  S1 :"System 1 · Intuitive", S2:"System 2 · Analytical",
+  HEU:"Cognitive Heuristics", R37:"37% Rule", EXP:"Explore/Exploit",
+  REC:"Recursive Intelligence", SLP:"Strange Loops",
+  MAS:"Master Algorithm", SYM:"Symbolists · Connectionists",
+  SOV:"Sovereign Individual", MPT:"Megapolitical Transition", CRY:"Cryptographic Economy",
+  SKW:"Skunk Works", KLJ:"Kelly Johnson", LON:"Loonshots", ADN:"American Dynamism",
+  PAT:"Pattern Language", ARC:"Architecture of Complexity",
+  MON:"Monopoly / Zero to One", INV:"Contrarian Secrets",
+  PRO:"Preferential Attachment", OPT:"Optimal Stopping",
+};
+
+// -------------------------------------------------------------
+// EPISODES — hand-authored 1–5, procedural 6–50
+// -------------------------------------------------------------
+const MANUAL = [
+  { n:1, title:"The Shape of Complexity",
+    blurb:"Why nothing scales the way you think it does.",
+    anchors:["SYS","SCA","SUB","SUP","EMG","FBK"], bridges:[] },
+  { n:2, title:"Observe · Orient · Decide · Act",
+    blurb:"Boyd, Skunk Works, and the physics of being first.",
+    anchors:["OOD","ORI","FTR","SNO","SKW","KLJ"], bridges:["FBK"] },
+  { n:3, title:"The Hardware Beneath the Argument",
+    blurb:"What everyone is talking about runs on what nobody can see.",
+    anchors:["CHP","TSM","MEG","HDW","ADN"], bridges:["SCA","SUP"] },
+  { n:4, title:"Finite and Infinite",
+    blurb:"When you're playing a different game than your opponent.",
+    anchors:["GTH","FIN","INF","CLD","NET","MON","INV"], bridges:["EMG"] },
+  { n:5, title:"The Strange Loop",
+    blurb:"Recursion, orientation, and the mind watching itself decide.",
+    anchors:["REC","SLP","S1","S2","HEU","MAS","SYM","R37","EXP","OPT"], bridges:["OOD","ORI"] },
+];
+
+function rng(seed){ return () => { seed=(seed*9301+49297)%233280; return seed/233280; }; }
+const rand = rng(7);
+const CKEYS = Object.keys(CONCEPTS);
+const frequency = new Map(CKEYS.map(k => [k, 0]));
+MANUAL.forEach(e => [...e.anchors,...e.bridges].forEach(k => frequency.set(k, frequency.get(k)+1)));
+
+function weightedPick(excluded){
+  const pool = CKEYS.filter(k => !excluded.has(k) && frequency.get(k)>0);
+  const total = pool.reduce((s,k)=>s+Math.pow(frequency.get(k),1.4),0);
+  let r = rand()*total;
+  for (const k of pool){ r -= Math.pow(frequency.get(k),1.4); if (r<=0) return k; }
+  return pool[0];
+}
+function freshPick(excluded){
+  const pool = CKEYS.filter(k => !excluded.has(k));
+  return pool[Math.floor(rand()*pool.length)];
+}
+
+const EPISODES = [...MANUAL];
+const PROC_TITLES = [
+  "Networks that Refuse to Die","The Friction of Scale","Who Builds the Builders",
+  "Forecasts vs Phase Shifts","The Margin of Orientation","Honey, Not Bees",
+  "Command at the Speed of Intuition","The Thing That Compounds","Crystals & Liquids",
+  "Secrets that Pay Rent","The Weight of Hardware","Feedback Inside Feedback",
+  "Infinite Moves, Finite Time","Loonshots in the Cold","Bayes at the Border",
+  "When the Map Edits the Terrain","Sovereigns & Their Shadows","The Grammar of Systems",
+  "Stopping Rules","Exploit Too Late","Bridging Silos","The Dynamic of Dynamism",
+  "Orientation as Religion","Cold Starts, Warm Networks","Recursion's Shadow",
+  "The Tile Nobody Placed","Shadows of the Constellation","How Empires Forget",
+  "The Cost of Being First","Latency in the Mind","Patterns That Listen",
+  "Heuristics at Scale","The Work of Attention","Invisible Hands, Visible Locks",
+  "The Argument Under the Argument","When Complexity Clicks","The Last Bridge",
+  "Second-Order Effects","The Half-Life of Secrets","The Quiet Engine",
+  "Before the Fast Transient","Kindling & Catalyst","The Substrate Awakens",
+  "Strange Loops Close","Relic",
+];
+for (let n=6;n<=50;n++){
+  const reuse = 2 + Math.floor(rand()*2);
+  const used = new Set();
+  const bridges = [];
+  for (let i=0;i<reuse;i++){
+    const k = weightedPick(used); used.add(k); bridges.push(k);
+  }
+  const newAnchor = rand() < 0.55 ? freshPick(used) : weightedPick(used);
+  used.add(newAnchor);
+  const anchors = [newAnchor];
+  const extraNew = 1 + Math.floor(rand()*3);
+  for (let i=0;i<extraNew;i++){
+    const k = rand()<0.4 ? freshPick(used) : weightedPick(used);
+    used.add(k); anchors.push(k);
+  }
+  [...anchors,...bridges].forEach(k => frequency.set(k, (frequency.get(k)||0)+1));
+  EPISODES.push({ n, title: PROC_TITLES[n-6] || `Episode ${n}`, blurb:"", anchors, bridges });
+}
+
+// -------------------------------------------------------------
+// GRAPH
+// -------------------------------------------------------------
+const stage = document.getElementById('stage');
+const ctx = stage.getContext('2d');
+let W=0,H=0,DPR=Math.min(window.devicePixelRatio||1,2);
+function resize(){ W=innerWidth;H=innerHeight;stage.width=W*DPR;stage.height=H*DPR;
+  stage.style.width=W+'px';stage.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);
+  for(const n of nodes){ if(n.x===undefined){ n.x=W/2+(Math.random()-0.5)*200; n.y=H/2+(Math.random()-0.5)*200; n.vx=0;n.vy=0; } } }
+
+const nodes = [];
+const byId = new Map();
+function addNode(o){ const n={vx:0,vy:0,...o}; nodes.push(n); byId.set(o.id,n); return n; }
+const edges = [];
+
+// deterministic per-node quirks for drawing
+function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0)/4294967295;}
+
+for (const k of CKEYS){
+  const n = addNode({ id:"C:"+k, kind:"concept", label:CONCEPTS[k], key:k, degree:0 });
+  n.rot = (hash(n.id)-0.5)*0.3;
+  n.wobble = hash(n.id+"w")*1000;
+}
+for (const e of EPISODES){
+  const n = addNode({ id:"E:"+e.n, kind:"episode", ep:e });
+  n.rot = (hash(n.id)-0.5)*0.35;   // stamp tilt
+  n.inkShift = (hash(n.id+"i")-0.5)*2; // off-register px
+}
+for (const e of EPISODES){
+  for (const k of [...e.anchors, ...e.bridges]){
+    edges.push({ a:"E:"+e.n, b:"C:"+k, anchor: e.anchors.includes(k), wob: hash("E"+e.n+k) });
+    byId.get("C:"+k).degree++;
+  }
+}
+resize(); addEventListener('resize', resize);
+
+// -------------------------------------------------------------
+// STATE
+// -------------------------------------------------------------
+let mode = 'personal';
+let heardN = 5;
+let hoverId = null;
+let selected = null;
+let reveal = 0;              // 0 → 1 dissolve amount
+let revealTarget = 0;
+let manualReveal = false;    // user has taken control of reveal
+let keystoneSet = new Set(); // episode ids that carry the most bridges
+let mouse = { x:-9999,y:-9999, down:false, dragId:null, dx:0, dy:0, moved:false };
+
+stage.addEventListener('mousemove', e => {
+  const r = stage.getBoundingClientRect();
+  mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top;
+  if (mouse.down && mouse.dragId){
+    const n = byId.get(mouse.dragId);
+    n.x = mouse.x + mouse.dx; n.y = mouse.y + mouse.dy; n.vx=n.vy=0; n.pinned=true;
+    mouse.moved = true;
+  }
+});
+stage.addEventListener('mousedown', () => {
+  mouse.down = true; mouse.moved = false;
+  if (hoverId){
+    const n = byId.get(hoverId); mouse.dragId = hoverId;
+    mouse.dx = n.x - mouse.x; mouse.dy = n.y - mouse.y;
+  }
+});
+stage.addEventListener('mouseup', () => { mouse.down=false; mouse.dragId=null; });
+stage.addEventListener('click', () => {
+  if (mouse.moved) return;
+  if (hoverId){ selected = selected === hoverId ? null : hoverId; openDetail(); }
+  else { selected = null; closeDetail(); }
+});
+stage.addEventListener('mouseleave', () => { mouse.x=-9999; mouse.y=-9999; });
+
+document.getElementById('modePersonal').onclick = () => setMode('personal');
+document.getElementById('modeCanonical').onclick = () => setMode('canonical');
+document.getElementById('revealBtn').onclick = () => {
+  manualReveal = true;
+  revealTarget = revealTarget>0.5 ? 0 : 1;
+  document.getElementById('revealBtn').classList.toggle('active', revealTarget>0.5);
+  document.getElementById('revealBtn').textContent = revealTarget>0.5 ? 'Restore Podcast' : 'Dissolve the Podcast';
+};
+document.getElementById('exportBtn').onclick = () => {
+  const heardEps = EPISODES.filter(e => episodeVisible(e.n));
+  const conceptsSnap = [];
+  for (const n of nodes){
+    if (n.kind!=='concept') continue;
+    const s = conceptState(n);
+    if (s.heard>0) conceptsSnap.push({ key:n.key, label:n.label, heard:s.heard, total:s.total, bridge:s.heard>=3 });
+  }
+  const payload = {
+    specimen: "Relic · Personal Copy",
+    generated: new Date().toISOString(),
+    mode, heardN, totalEpisodes:EPISODES.length,
+    episodes: heardEps.map(e => ({ n:e.n, title:e.title, anchors:e.anchors, bridges:e.bridges })),
+    concepts: conceptsSnap,
+    bridges: conceptsSnap.filter(c => c.bridge).map(c => c.label),
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `relic-specimen-${String(heardN).padStart(2,'0')}ep.json`;
+  a.click(); URL.revokeObjectURL(url);
+};
+document.getElementById('heardRange').oninput = e => { heardN = +e.target.value; updateHeardLabel(); refreshStats(); };
+for (const b of document.querySelectorAll('[data-jump]')) b.onclick = () => {
+  const v = +b.dataset.jump;
+  document.getElementById('heardRange').value = v; heardN = v;
+  if (mode==='canonical') setMode('personal');
+  updateHeardLabel(); refreshStats();
+};
+function setMode(m){
+  mode = m;
+  document.getElementById('modePersonal').classList.toggle('active', m==='personal');
+  document.getElementById('modeCanonical').classList.toggle('active', m==='canonical');
+  refreshStats();
+}
+function updateHeardLabel(){
+  document.getElementById('heardLabel').textContent =
+    String(heardN).padStart(2,'0')+' / '+String(EPISODES.length).padStart(2,'0');
+}
+updateHeardLabel();
+
+function episodeVisible(n){ return mode==='canonical' || n <= heardN; }
+function conceptState(cnode){
+  let heard=0, total=0;
+  for (const e of edges){
+    if (e.b === cnode.id){
+      total++;
+      const ep = +e.a.slice(2);
+      if (episodeVisible(ep)) heard++;
+    }
+  }
+  return { heard, total, visible: heard>0 || mode==='canonical' };
+}
+
+function refreshStats(){
+  let tiles=0, concepts=0, bridges=0;
+  const bridgeConcepts = new Set();
+  for (const n of nodes){
+    if (n.kind==='episode' && episodeVisible(n.ep.n)) tiles++;
+    if (n.kind==='concept'){
+      const s = conceptState(n);
+      if (s.visible) concepts++;
+      if (s.heard >= 3){ bridges++; bridgeConcepts.add(n.id); }
+    }
+  }
+  document.getElementById('tileCount').textContent = String(tiles).padStart(2,'0');
+  document.getElementById('conceptCount').textContent = String(concepts).padStart(2,'0');
+  document.getElementById('bridgeCount').textContent = String(bridges).padStart(2,'0');
+
+  // Keystone episodes: rank by how many bridge-concepts they touch
+  const epScore = new Map();
+  for (const e of edges){
+    if (!bridgeConcepts.has(e.b)) continue;
+    const ep = +e.a.slice(2);
+    if (!episodeVisible(ep)) continue;
+    epScore.set(e.a, (epScore.get(e.a)||0)+1);
+  }
+  const ranked = [...epScore.entries()].sort((a,b)=>b[1]-a[1]).slice(0, Math.min(5, Math.ceil(tiles*0.15)));
+  keystoneSet = new Set(ranked.map(r => r[0]));
+
+  // Auto-crystallize: at 5 bridges partial, at 15 full — unless user overrode
+  if (!manualReveal){
+    const auto = Math.max(0, Math.min(1, (bridges - 5) / 10));
+    revealTarget = auto;
+  }
+
+  // Forming stamp appears once auto-reveal begins
+  const stamp = document.getElementById('formingStamp');
+  stamp.style.opacity = (!manualReveal && bridges>=5 && reveal < 0.92) ? '0.7' : '0';
+
+  const em = document.getElementById('emergence');
+  const newB = [];
+  for (const n of nodes){
+    if (n.kind==='concept'){
+      const s = conceptState(n);
+      if (s.heard===3) newB.push(n);
+    }
+  }
+  if (bridges>=15 && !manualReveal){
+    em.textContent = `↳ relic crystallized · ${bridges} bridges · podcast dissolved`;
+  } else if (newB.length){
+    em.textContent = `↳ new emergent bridge · ${newB[0].label}`;
+  } else if (bridges>=5 && !manualReveal){
+    em.textContent = `↳ forming · ${bridges} bridges · keystones appearing`;
+  } else {
+    em.textContent = bridges>0 ? `↳ ${bridges} concepts now hold the relic together` : '';
+  }
+}
+refreshStats();
+
+// -------------------------------------------------------------
+// LAYOUT
+// -------------------------------------------------------------
+function nodeIsLive(n){
+  if (n.kind==='episode') return episodeVisible(n.ep.n);
+  if (n.kind==='concept'){ return conceptState(n).visible; }
+  return true;
+}
+function step(){
+  const cx=W/2, cy=H/2;
+  for (const n of nodes){
+    if (n.pinned) continue;
+    const dx = cx-n.x, dy = cy-n.y;
+    n.vx += dx*0.00025; n.vy += dy*0.00025;
+  }
+  for (let i=0;i<nodes.length;i++){
+    const a = nodes[i]; if (!nodeIsLive(a)) continue;
+    for (let j=i+1;j<nodes.length;j++){
+      const b = nodes[j]; if (!nodeIsLive(b)) continue;
+      const dx = a.x-b.x, dy = a.y-b.y;
+      const d2 = dx*dx+dy*dy+0.01;
+      const d = Math.sqrt(d2);
+      const baseRep = (a.kind==='episode'&&b.kind==='episode') ? 3000 :
+                       (a.kind==='concept'&&b.kind==='concept') ? 900 : 1400;
+      const f = baseRep/d2;
+      const fx = f*dx/d, fy = f*dy/d;
+      if (!a.pinned){ a.vx += fx; a.vy += fy; }
+      if (!b.pinned){ b.vx -= fx; b.vy -= fy; }
+    }
+  }
+  for (const e of edges){
+    const A = byId.get(e.a), B = byId.get(e.b);
+    if (!nodeIsLive(A) || !nodeIsLive(B)) continue;
+    const dx = B.x-A.x, dy = B.y-A.y;
+    const d = Math.hypot(dx,dy)+0.01;
+    const rest = e.anchor ? 95 : 130;
+    const k = 0.012;
+    const f = (d-rest)*k;
+    const fx = f*dx/d, fy = f*dy/d;
+    if (!A.pinned){ A.vx += fx; A.vy += fy; }
+    if (!B.pinned){ B.vx -= fx; B.vy -= fy; }
+  }
+  for (const n of nodes){
+    if (n.pinned) continue;
+    n.vx *= 0.82; n.vy *= 0.82;
+    n.x += n.vx; n.y += n.vy;
+    const pad = 80;
+    if (n.x<pad) n.vx += (pad-n.x)*0.05;
+    if (n.x>W-pad) n.vx += (W-pad-n.x)*0.05;
+    if (n.y<pad) n.vy += (pad-n.y)*0.05;
+    if (n.y>H-pad) n.vy += (H-pad-n.y)*0.05;
+  }
+}
+
+// -------------------------------------------------------------
+// RENDER — zine collage aesthetic
+// -------------------------------------------------------------
+function related(id){
+  if (!id) return null;
+  const s = new Set([id]);
+  for (const e of edges){
+    if (e.a===id) s.add(e.b);
+    if (e.b===id) s.add(e.a);
+  }
+  return s;
+}
+
+// wobbly ballpoint line between two points
+function penLine(x1,y1,x2,y2, seedA, color, lw, dashed){
+  const dx=x2-x1, dy=y2-y1;
+  const d = Math.hypot(dx,dy);
+  const steps = Math.max(6, Math.floor(d/14));
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lw;
+  if (dashed) ctx.setLineDash([4,5]); else ctx.setLineDash([]);
+  ctx.beginPath();
+  for (let i=0;i<=steps;i++){
+    const t = i/steps;
+    const wx = Math.sin((seedA+t)*12.91)*1.4;
+    const wy = Math.cos((seedA+t)*9.13)*1.4;
+    const px = x1 + dx*t + (-dy/d)*wx;
+    const py = y1 + dy*t + ( dx/d)*wy;
+    if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function drawEpisode(n, focused){
+  const ep = n.ep;
+  const rw = 46, rh = 26;
+  ctx.save();
+  ctx.translate(n.x, n.y);
+  ctx.rotate(n.rot);
+
+  // off-register CMYK smears (cyan + yellow) behind the stamp
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = 'rgba(28,58,134,0.28)';
+  ctx.fillRect(-rw/2 - 1.6 + n.inkShift, -rh/2 + 1.2, rw, rh);
+  ctx.fillStyle = 'rgba(245,197,24,0.35)';
+  ctx.fillRect(-rw/2 + 1.4, -rh/2 - 1.1, rw, rh);
+  ctx.globalAlpha = 1;
+
+  // rust ink block body (rough stamp)
+  ctx.fillStyle = 'rgba(161,52,24,0.92)';
+  ctx.fillRect(-rw/2, -rh/2, rw, rh);
+
+  // inner paper
+  ctx.fillStyle = 'rgba(235,224,189,0.94)';
+  ctx.fillRect(-rw/2+3, -rh/2+3, rw-6, rh-6);
+
+  // border double stroke
+  ctx.strokeStyle = '#6b2210';
+  ctx.lineWidth = 1.2;
+  ctx.strokeRect(-rw/2, -rh/2, rw, rh);
+  ctx.lineWidth = 0.6;
+  ctx.strokeRect(-rw/2+5, -rh/2+5, rw-10, rh-10);
+
+  // ink smudges (random specks)
+  for (let i=0;i<5;i++){
+    const sx = (hash(ep.n+"s"+i)-0.5)*rw;
+    const sy = (hash(ep.n+"t"+i)-0.5)*rh;
+    ctx.fillStyle = `rgba(107,34,16,${0.25+hash(ep.n+"u"+i)*0.5})`;
+    ctx.beginPath(); ctx.arc(sx,sy,0.6+hash(ep.n+"v"+i)*1.2,0,Math.PI*2); ctx.fill();
+  }
+
+  // stamp text
+  ctx.fillStyle = '#6b2210';
+  ctx.font = 'bold 9px "IM Fell English SC", serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(`EP · ${String(ep.n).padStart(2,'0')}`, 0, -2);
+  ctx.font = '6.5px "Special Elite", monospace';
+  ctx.fillText('RELIC ARCHIVE', 0, 7);
+
+  if (focused){
+    ctx.strokeStyle = '#f5c518';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(-rw/2-4, -rh/2-4, rw+8, rh+8);
+  }
+  ctx.restore();
+}
+
+function drawConcept(n, focused){
+  const s = conceptState(n);
+  const bridge = s.heard >= 3;
+  const ghost = s.heard === 0;
+  const r = 4 + Math.min(5, s.heard*0.7);
+
+  // mustard highlighter slab behind bridges
+  if (bridge && !ghost){
+    ctx.save();
+    ctx.translate(n.x, n.y);
+    ctx.rotate(n.rot*1.5);
+    const label = n.label;
+    const lblW = ctx.measureText(label).width + 16;
+    ctx.fillStyle = 'rgba(255,213,40,0.78)';
+    ctx.fillRect(-lblW/2+r+6, -7, lblW, 13);
+    // smear streaks (highlighter drag)
+    ctx.globalAlpha=0.4;
+    ctx.fillRect(-lblW/2+r+6+3, -9, lblW-6, 2);
+    ctx.globalAlpha=1;
+    ctx.restore();
+  }
+
+  // ballpoint pen circle — double stroke for blue-pen look
+  const penColor = ghost ? 'rgba(58,47,32,0.55)' : '#1c3a86';
+  ctx.save();
+  ctx.translate(n.x, n.y);
+
+  if (ghost){
+    // dashed ghost
+    ctx.strokeStyle = penColor;
+    ctx.lineWidth = 0.9;
+    ctx.setLineDash([2,2]);
+    ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+  } else {
+    // slightly imperfect double-circle (pen pressure)
+    ctx.strokeStyle = penColor;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    const segs = 24;
+    for (let i=0;i<=segs;i++){
+      const a = i/segs*Math.PI*2;
+      const jr = r + Math.sin(a*3 + n.wobble)*0.4;
+      const px = Math.cos(a)*jr, py = Math.sin(a)*jr;
+      if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+    // inner dot
+    ctx.fillStyle = penColor;
+    ctx.beginPath(); ctx.arc(0,0,1.4,0,Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+
+  // typewriter label
+  const showLabel = focused || (!ghost && (bridge || s.heard>=2));
+  if (showLabel){
+    ctx.save();
+    ctx.translate(n.x+r+6, n.y);
+    ctx.rotate(n.rot*0.6);
+    ctx.font = bridge ? 'bold 10px "Special Elite", monospace' : '10px "Special Elite", monospace';
+    ctx.textBaseline='middle';
+    // dusty typewriter: slight shadow offset + muted black
+    ctx.fillStyle = 'rgba(26,20,12,0.35)';
+    ctx.fillText(n.label, 0.6, 0.8);
+    ctx.fillStyle = bridge ? '#6b2210' : (ghost ? 'rgba(58,47,32,0.6)' : '#1a140c');
+    ctx.fillText(n.label, 0, 0);
+    ctx.restore();
+  }
+}
+
+// Concept-to-concept co-occurrence — the emergent structure
+// that the podcast never stated but every episode implied.
+function computeCoOccurrence(){
+  const pairs = new Map();
+  for (const e of EPISODES){
+    if (!episodeVisible(e.n)) continue;
+    const keys = [...e.anchors, ...e.bridges];
+    for (let i=0;i<keys.length;i++){
+      for (let j=i+1;j<keys.length;j++){
+        const a = keys[i] < keys[j] ? keys[i] : keys[j];
+        const b = keys[i] < keys[j] ? keys[j] : keys[i];
+        const id = a+"|"+b;
+        pairs.set(id, (pairs.get(id)||0)+1);
+      }
+    }
+  }
+  return pairs;
+}
+
+function draw(){
+  // reveal easing
+  reveal += (revealTarget - reveal)*0.08;
+
+  // subtle cream trail (preserves ghosting of movement)
+  ctx.fillStyle = 'rgba(235,224,189,0.55)';
+  ctx.fillRect(0,0,W,H);
+
+  const focus = related(selected || hoverId);
+
+  // In reveal mode, draw concept-to-concept co-occurrence edges first (underlay)
+  if (reveal > 0.02){
+    const pairs = computeCoOccurrence();
+    for (const [id, count] of pairs){
+      if (count < 2) continue;
+      const [a,b] = id.split("|");
+      const A = byId.get("C:"+a), B = byId.get("C:"+b);
+      if (!A || !B || !nodeIsLive(A) || !nodeIsLive(B)) continue;
+      const lw = Math.min(3.2, 0.6 + count*0.6);
+      const alpha = Math.min(0.85, 0.22 + count*0.12) * reveal;
+      ctx.globalAlpha = alpha;
+      penLine(A.x, A.y, B.x, B.y, hash(id), 'rgba(107,34,16,0.9)', lw, false);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // EDGES — ballpoint pen doodles (fade under reveal)
+  const fade = 1 - reveal*0.92;
+  for (const e of edges){
+    const A = byId.get(e.a), B = byId.get(e.b);
+    if (!nodeIsLive(A) || !nodeIsLive(B)) continue;
+    const ep = +e.a.slice(2);
+    const heard = episodeVisible(ep);
+    const inFocus = focus && (focus.has(e.a) && focus.has(e.b));
+    const cState = conceptState(B);
+    const bridge = cState.heard >= 3;
+
+    let color, lw, dashed=false, alpha=1;
+    if (!heard){
+      color = 'rgba(58,47,32,0.35)'; lw = 0.6; dashed = true;
+    } else if (inFocus){
+      color = 'rgba(107,34,16,0.95)'; lw = 2.0;
+    } else if (bridge){
+      color = 'rgba(161,52,24,0.7)'; lw = 1.3;
+    } else if (e.anchor){
+      color = 'rgba(28,58,134,0.68)'; lw = 1.0;
+    } else {
+      color = 'rgba(28,58,134,0.4)'; lw = 0.8;
+    }
+    if (focus && !inFocus) alpha = 0.3;
+    ctx.globalAlpha = alpha * fade;
+    penLine(A.x, A.y, B.x, B.y, e.wob, color, lw, dashed);
+    ctx.globalAlpha = 1;
+  }
+
+  // CONCEPTS
+  for (const n of nodes){
+    if (n.kind!=='concept') continue;
+    if (!nodeIsLive(n)) continue;
+    const inFocus = focus && focus.has(n.id);
+    if (focus && !inFocus) ctx.globalAlpha = 0.35;
+    drawConcept(n, inFocus);
+    ctx.globalAlpha = 1;
+  }
+
+  // EPISODE TILES — keystones stay visible as load-bearing seams
+  for (const n of nodes){
+    if (n.kind!=='episode') continue;
+    if (!nodeIsLive(n)) continue;
+    const inFocus = focus && focus.has(n.id);
+    const isKeystone = keystoneSet.has(n.id);
+    let a = 1;
+    if (focus && !inFocus) a = 0.35;
+    const fadePower = isKeystone ? 0.45 : 0.92;
+    a *= (1 - reveal*fadePower);
+    if (a < 0.03) continue;
+    ctx.globalAlpha = a;
+    drawEpisode(n, inFocus);
+    // keystone mark: mustard underline at full reveal
+    if (isKeystone && reveal > 0.5){
+      ctx.save();
+      ctx.translate(n.x, n.y+18);
+      ctx.rotate(n.rot);
+      ctx.fillStyle = `rgba(245,197,24,${Math.min(1, (reveal-0.3)*1.4)})`;
+      ctx.fillRect(-22, -1.5, 44, 3);
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // HOVER
+  hoverId = null;
+  let best = 24;
+  for (const n of nodes){
+    if (!nodeIsLive(n)) continue;
+    const d = Math.hypot(n.x-mouse.x, n.y-mouse.y);
+    if (d < best){ best = d; hoverId = n.id; }
+  }
+  const tt = document.getElementById('tooltip');
+  if (hoverId){
+    const n = byId.get(hoverId);
+    if (n.kind==='episode'){
+      tt.innerHTML = `<div class="tip-label">Episode ${String(n.ep.n).padStart(2,'0')}</div>
+        <div class="tip-title">${n.ep.title}</div>
+        <div class="tip-meta">${n.ep.anchors.length} anchors · ${n.ep.bridges.length} bridges</div>`;
+    } else {
+      const s = conceptState(n);
+      tt.innerHTML = `<div class="tip-label">Concept</div>
+        <div class="tip-title">${n.label}</div>
+        <div class="tip-meta">touched in ${s.heard}/${s.total} episodes${s.heard>=3?' · emergent bridge':''}</div>`;
+    }
+    tt.style.left = (mouse.x+16)+'px';
+    tt.style.top  = (mouse.y-12)+'px';
+    tt.style.opacity = 1;
+    stage.style.cursor = 'pointer';
+  } else {
+    tt.style.opacity = 0;
+    stage.style.cursor = 'default';
+  }
+}
+
+function openDetail(){
+  const d = document.getElementById('detail');
+  if (!selected){ closeDetail(); return; }
+  const n = byId.get(selected);
+  if (!n) return;
+  if (n.kind==='episode'){
+    const ep = n.ep;
+    const anchorsHtml = ep.anchors.map(k => `<span class="chip anchor">${CONCEPTS[k]}</span>`).join('');
+    const bridgesHtml = ep.bridges.map(k => `<span class="chip bridge">${CONCEPTS[k]}</span>`).join('');
+    d.innerHTML = `<span class="close" onclick="document.getElementById('detail').style.opacity=0">×</span>
+      <div class="tip-label">Dossier · Ep ${String(ep.n).padStart(2,'0')}</div>
+      <div class="tip-title" style="margin-bottom:4px;">${ep.title}</div>
+      ${ep.blurb?`<div class="tip-meta" style="margin-top:0">${ep.blurb}</div>`:''}
+      <div class="tip-label" style="margin-top:10px;">Anchors</div>
+      <div>${anchorsHtml}</div>
+      ${bridgesHtml?`<div class="tip-label" style="margin-top:10px;">Bridges</div><div>${bridgesHtml}</div>`:''}`;
+  } else {
+    const s = conceptState(n);
+    const eps = edges.filter(e => e.b===n.id).map(e => +e.a.slice(2));
+    const heardEps = eps.filter(x => episodeVisible(x)).sort((a,b)=>a-b);
+    const unheardEps = eps.filter(x => !episodeVisible(x)).sort((a,b)=>a-b);
+    const chipClass = s.heard>=3 ? 'chip highlight' : 'chip';
+    const chips = heardEps.map(x => `<span class="${chipClass}">E${String(x).padStart(2,'0')}</span>`).join('');
+    const ghostChips = unheardEps.map(x => `<span class="chip" style="opacity:0.45">E${String(x).padStart(2,'0')}</span>`).join('');
+    d.innerHTML = `<span class="close" onclick="document.getElementById('detail').style.opacity=0">×</span>
+      <div class="tip-label">Concept ${s.heard>=3?'· Emergent Bridge':''}</div>
+      <div class="tip-title" style="margin-bottom:6px;">${n.label}</div>
+      <div class="tip-meta">Appears in ${s.heard} of ${s.total} episodes in your relic.</div>
+      <div class="tip-label" style="margin-top:10px;">Heard</div><div>${chips||'<span class="chip" style="opacity:0.4">none yet</span>'}</div>
+      ${ghostChips?`<div class="tip-label" style="margin-top:10px;">Unheard · ghost</div><div>${ghostChips}</div>`:''}`;
+  }
+  d.style.left = Math.min(W-340, mouse.x+18)+'px';
+  d.style.top  = Math.min(H-240, mouse.y+18)+'px';
+  d.style.opacity = 1;
+}
+function closeDetail(){ document.getElementById('detail').style.opacity=0; }
+
+function loop(){ step(); step(); draw(); refreshStats(); requestAnimationFrame(loop); }
+loop();
+</script>
+</body>
+</html>
