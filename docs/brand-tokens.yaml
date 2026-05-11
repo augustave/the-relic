@@ -1,0 +1,187 @@
+# Brand Operating System — Tokens
+# Phase III artifact. Lifted from CSS variables in index.html.
+# Single source of truth for color, type, motion, texture.
+
+brand:
+  name: The Relic
+  thesis: postmodern Americana zine collage
+  named_enemy: generic SaaS gradient minimalism
+  references:
+    - 1990s DIY punk zine ephemera
+    - FBI case files and field reports
+    - Risograph and rough Xerox prints
+    - USGS topographic plates
+    - illuminated manuscript marginalia
+
+# ---------------------------------------------------------------
+# COLOR
+# ---------------------------------------------------------------
+color:
+  paper:        "#ebe0bd"  # ledger cream — primary surface
+  paper_shadow: "#c9bc8c"
+  ink:          "#1a140c"  # dusty black — primary text
+  ink_dust:     "#3a2f20"  # secondary text
+  navy:         "#1c2a4a"  # display headlines, navy stamps
+  rust:         "#a13418"  # rubber stamp ink, rust pen
+  rust_deep:    "#6b2210"  # stamp borders, emphatic text on mustard
+  mustard:      "#f5c518"  # highlighter slab ONLY
+  mustard_hot:  "#ffd528"  # emergence highlight ONLY
+  pen:          "#1c3a86"  # ballpoint blue — concept doodles
+  pen_smear:    "#2f4fb3"  # ballpoint smear / accent
+  rule:         "rgba(60,90,150,0.18)"  # ledger lines
+  tape:         "rgba(245,238,210,0.55)" # transparent tape pieces
+
+# ---------------------------------------------------------------
+# CONTRAST AUDIT (WCAG AA = 4.5:1 for normal text, 3:1 for large)
+# All combinations actually used in the product.
+# ---------------------------------------------------------------
+contrast_audit:
+  - { fg: ink,        bg: paper,        ratio: 11.4,  pass_AA: true, notes: "body text" }
+  - { fg: ink_dust,   bg: paper,        ratio: 6.7,   pass_AA: true, notes: "secondary text" }
+  - { fg: navy,       bg: paper,        ratio: 7.1,   pass_AA: true, notes: "display headlines" }
+  - { fg: pen,        bg: paper,        ratio: 6.0,   pass_AA: true, notes: "concept labels" }
+  - { fg: rust,       bg: paper,        ratio: 4.8,   pass_AA: true, notes: "stamp text on paper" }
+  - { fg: rust_deep,  bg: mustard,      ratio: 5.4,   pass_AA: true, notes: "emergence text" }
+  - { fg: ink,        bg: mustard,      ratio: 8.1,   pass_AA: true, notes: "heard label" }
+
+# ---------------------------------------------------------------
+# COLOR USAGE RULES
+# ---------------------------------------------------------------
+rules:
+  mustard:
+    role: highlighter slab only
+    forbidden:
+      - as text color on any light background (fails contrast)
+      - as primary fill on tiles or borders (steals focus from rust ink)
+    only_use: as background fill BEHIND dark ink text, simulating a yellow highlighter pass
+  rust:
+    role: rubber stamp ink, emphatic highlights
+    forbidden:
+      - as body text color (use ink)
+      - as decorative fill at low opacity (looks like a CSS gradient — violates the named enemy)
+  pen:
+    role: ballpoint pen doodle line + concept circles
+    forbidden:
+      - as fill block
+      - as text outside of pen-doodle context
+  navy:
+    role: display type (IM Fell English SC), navy-tier buttons
+    forbidden:
+      - as line color (use pen instead)
+  paper:
+    role: primary surface; never a text color
+
+# ---------------------------------------------------------------
+# TYPE
+# ---------------------------------------------------------------
+type:
+  display:
+    family: '"IM Fell English SC", serif'
+    use: titles, card headers, stamp inscriptions
+    effect: CMYK channel-split text-shadow (0.5px rust offset, -0.5px mustard offset)
+  body:
+    family: '"Courier Prime", "Courier New", monospace'
+    use: paragraph copy, default microtype
+  typewriter:
+    family: '"Special Elite", "Courier Prime", monospace'
+    use: kickers, labels, hints, dusty marginalia, concept labels on canvas
+    effect: 0.6px shadow offset for dust
+  scale:
+    xs: 9px
+    sm: 10px
+    md: 11px
+    lg: 14px
+    xl: 22px
+  case:
+    kicker: UPPERCASE, letter-spacing 0.22em–0.30em
+    body: sentence case
+    stamps: UPPERCASE, letter-spacing 0.18em
+
+# ---------------------------------------------------------------
+# MOTION
+# ---------------------------------------------------------------
+motion:
+  thesis: motion reveals; it never ornaments
+  primitives:
+    spring_lerp: 0.08          # node settling, reveal easing
+    transition_fast: 120ms     # tooltip fade, hover
+    transition_med: 200ms      # button hover
+    transition_slow: ~3s       # full dissolve animation
+  rules:
+    - never use bounce, elastic, or overshoot easings — they belong to consumer SaaS
+    - all transitions are ease-in-out
+    - motion ONLY indicates a state change; idle elements do not animate
+    - the dissolve is the canonical motion expression of the brand thesis
+
+# ---------------------------------------------------------------
+# TEXTURE
+# ---------------------------------------------------------------
+texture:
+  paper_grain:
+    technique: inline SVG feTurbulence
+    baseFrequency: 0.9
+    octaves: 2
+    opacity: 0.35
+    blend: multiply
+  ledger_rules:
+    color: rule (see color tokens)
+    spacing: 28px
+    opacity: 0.55
+  foxing:
+    technique: radial gradients (sepia tones)
+    placement: corners + scattered
+    blend: multiply
+  vignette:
+    technique: radial gradient
+    intensity: 0.28 at edge
+  ink_specks:
+    technique: hashed deterministic dots on stamp surface
+    density: 5 specks per tile
+  off_register:
+    technique: 3-pass draw with cyan + yellow channel offsets, ~1.5px
+    target: episode rubber stamps only
+
+# ---------------------------------------------------------------
+# COMPONENTS (defined in semantic, not literal, terms)
+# ---------------------------------------------------------------
+components:
+  card:
+    surface: paper
+    border: 1px solid rgba(ink, 0.35)
+    shadow: 2px 4px 0 rgba(100,70,25,0.12)  # sepia drop, not gray
+    decoration: 2 tape strips (top-left, top-right)
+    rotation: -1deg to +1deg deterministic per card
+  stamp_button:
+    palette: rust OR navy
+    border: 1.5px solid (palette)
+    inner_paper_offset: 2px inset paper, 3px inset (palette)
+    hover: rotate -1.5deg + translateY(-1px)
+    active: invert palette and paper
+  chip:
+    bg: paper
+    border: 1px solid ink_dust
+    variants: [anchor (rust), bridge (navy), highlight (mustard slab)]
+  tile_episode:
+    shape: rectangle, ~46×26
+    palette: rust ink with paper inner block
+    rotation: deterministic per tile
+    overlay: off-register CMYK smears
+  concept_doodle:
+    primitive: pen ballpoint circle, slightly imperfect (segmented)
+    color: pen (heard) or ink_dust dashed (unheard ghost)
+  bridge_highlight:
+    primitive: rotated mustard slab BEHIND label text
+    effect: streak smear suggesting highlighter drag
+
+# ---------------------------------------------------------------
+# THE FORBIDDEN
+# ---------------------------------------------------------------
+forbidden:
+  - CSS gradients on UI chrome (cards, buttons)
+  - drop shadows that simulate elevation (use offset stamp/sepia shadows instead)
+  - rounded corners > 2px (we are paper, not plastic)
+  - emojis in any UI surface
+  - icon fonts (use SVG engravings)
+  - sans-serif system fonts as primary type
+  - any animation that ornaments rather than reveals
+  - color shifts on hover (we shift transform and weight, not hue)

@@ -1,0 +1,72 @@
+# Market Requirement — Phase I
+# Stub. Will be populated after 5 user interviews.
+# Conforms to autonomous-venture-studio/common-schema.yaml "Market Requirement" template.
+
+status: blocked-on-interviews
+phase: I
+owner: founder
+gate: market_truth_gate
+gate_status: pending
+
+pain_statement:
+  text: TBD-after-interviews
+  source_quality: pending  # primary | secondary | tertiary
+  confidence: pending      # high | medium | low | unvalidated
+
+target_user_segment:
+  primary: TBD             # role, frequency of pain, willingness to pay
+  exclusions: TBD          # who this is explicitly NOT for
+  size_estimate:
+    tam: TBD
+    sam: TBD
+    som: TBD
+    source: TBD
+
+minimum_useful_outcome:
+  description: TBD         # smallest solution that solves the pain
+  measurable_signal: TBD   # how we know it worked
+  in_scope: []
+  out_of_scope: []
+
+constraints:
+  founder:
+    - solo founder, ~15-20 hr/wk
+  technical:
+    - web-only for v1
+    - no audio playback
+    - manual concept authoring (no LLM in v1)
+  market:
+    - requires one host partner committed to a 50-episode arc
+  regulatory: []
+
+success_criteria:
+  - id: SC-1
+    metric: TBD
+    target: TBD
+    timeframe: TBD
+
+evidence_log: []
+  # Each interview will append entries here:
+  # - id: EV-001
+  #   date: YYYY-MM-DD
+  #   source: interview-with-[firstname]
+  #   source_quality: primary
+  #   confidence: high
+  #   pain_confirmation: quote
+  #   workaround_observed: quote
+  #   willingness_to_pay_signal: quote
+
+interviews:
+  target: 5
+  completed: 0
+  scheduled: 0
+  channel:
+    personal_network: 3
+    cold_sourced: 2
+
+gate_criteria:
+  pain_confirmed_by_independent_sources: false  # needs ≥2 primary
+  user_segment_scoped: false
+  minimum_utility_specific: false
+  constraints_named: true  # done in this file
+  success_criteria_measurable: false

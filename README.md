@@ -4,6 +4,8 @@
 
 **Live:** [augustave.github.io/the-relic](https://augustave.github.io/the-relic/)
 
+**Status:** v0 prototype. Currently in Phase I of the [Autonomous Venture Studio](docs/00-founder-brief.md) gate process — user pain unvalidated, architecture is single-file, governance scaffold in place. See [risk-register.yaml](risk-register.yaml) and [docs/](docs/) for the honest state.
+
 Every episode deposits a fragment. Fragments dock on shared concepts. Enough fragments in, and the episodes stop being the point — the structure they were always assembling becomes the artifact. The podcast recedes into scaffolding; the relic remains.
 
 ---
@@ -125,9 +127,11 @@ Medium-term:
 - [ ] Per-episode printable card (letter-pressed rubber-stamp tile with concept list)
 - [ ] Audio hook: scrub the relic and the playhead moves through episode timestamps
 
-Speculative:
+Speculative (unvalidated — do not market):
 - [ ] Inter-relic docking — two listeners' personal relics can overlay and show their intersection
 - [ ] Query mode: click a concept pair and the relic surfaces the episodes that forged their link
+
+> ⚠️ Speculative items are NOT capabilities of the current artifact. The relic produces a visual emergent structure; it does not (yet) answer queries, merge across listeners, or perform inference.
 
 ---
 
