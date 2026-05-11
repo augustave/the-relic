@@ -1,0 +1,181 @@
+# Domain Model — Phase II (speculative pre-work)
+# Drafted before Phase I gate. Will be revised against listener pain evidence.
+# Marked SPECULATIVE; do not implement until market_truth_gate passes.
+
+status: speculative
+phase: II
+revisable_after: phase_I_gate
+last_revised: 2026-04-21
+
+# ---------------------------------------------------------------
+# ENTITIES
+# ---------------------------------------------------------------
+
+entities:
+
+  Show:
+    description: A podcast that the relic is tied to. One Show per relic in v1.
+    attributes:
+      id: uuid
+      slug: string (URL-safe, immutable)
+      title: string
+      host_id: ref(Host)
+      created_at: timestamp
+      canonical_relic_id: ref(CanonicalRelic)
+    lifecycle: [draft, active, paused, archived]
+    invariants:
+      - one Show = one CanonicalRelic
+      - slug is immutable post-creation
+
+  Host:
+    description: The author who produces episodes and curates the concept vocabulary.
+    attributes:
+      id: uuid
+      handle: string
+      email: string
+      created_at: timestamp
+    lifecycle: [active, dormant]
+    note: v1 supports exactly one Host per Show.
+
+  Concept:
+    description: A durable, reusable idea that episodes anchor to or bridge through. Atomic glyph.
+    attributes:
+      id: uuid                          # immutable internal id
+      key: string (3-letter SHOUTCASE)  # e.g. "OOD" — stable, public
+      label: string                     # human-readable, MUTABLE via alias
+      label_version: int                # increments on rename
+      show_id: ref(Show)
+      created_in_episode_n: int
+      created_at: timestamp
+      deprecated: boolean
+      deprecated_in_favor_of: ref(Concept) | null
+    lifecycle: [draft, published, deprecated]
+    invariants:
+      - key is immutable post-publication
+      - label CAN change via ConceptAlias; never via direct edit
+
+  ConceptAlias:
+    description: A historical label for a Concept. Append-only.
+    attributes:
+      concept_id: ref(Concept)
+      label: string
+      effective_from_episode_n: int
+      effective_through_episode_n: int | null
+    invariants:
+      - never delete; only append
+      - listener relics created before episode N see the label that was effective at N
+
+  Episode:
+    description: A discrete unit of podcast content; one tile in the relic.
+    attributes:
+      id: uuid
+      n: int (episode number, 1-indexed)
+      show_id: ref(Show)
+      title: string
+      blurb: string
+      released_at: timestamp
+      anchors: list(ref(Concept))   # concepts introduced
+      bridges: list(ref(Concept))   # concepts inherited
+      audio_url: string | null
+      transcript_url: string | null
+    lifecycle: [draft, scheduled, published, retracted]
+    invariants:
+      - n is unique per Show, monotonic
+      - every Concept in anchors must have been created in this Episode OR a prior one (handles retroactive anchoring)
+      - bridges must reference concepts that exist as of this Episode's n
+
+  EpisodeConceptBond:
+    description: Junction. The edge between an Episode tile and a Concept node.
+    attributes:
+      episode_id: ref(Episode)
+      concept_id: ref(Concept)
+      role: enum [anchor, bridge]
+    invariants:
+      - composite key (episode_id, concept_id) is unique
+      - a concept cannot be both anchor and bridge of the same episode
+
+  CanonicalRelic:
+    description: The authoritative, public, append-only relic for a Show.
+    attributes:
+      id: uuid
+      show_id: ref(Show)
+      version: int (increments on every published episode)
+      published_at: timestamp
+    invariants:
+      - immutable per version
+      - readable by all; writable only by Host (via Episode publication)
+
+  Listener:
+    description: A consumer of the Show.
+    attributes:
+      id: uuid (anonymous by default in v1)
+      handle: string | null
+      created_at: timestamp
+    lifecycle: [anonymous, registered]
+
+  PersonalRelic:
+    description: A Listener's per-Show artifact. Mirrors CanonicalRelic up to heard_n.
+    attributes:
+      id: uuid
+      listener_id: ref(Listener)
+      show_id: ref(Show)
+      heard_n: int                  # highest episode they've heard
+      canonical_version_synced: int # which canonical version this relic is built against
+      created_at: timestamp
+      last_synced_at: timestamp
+      mode: enum [personal, canonical]
+      reveal_state: float (0.0–1.0)
+    invariants:
+      - heard_n ≤ canonical_version_synced ≤ canonical.version
+      - one PersonalRelic per (listener, show)
+
+  EmergentBridge:
+    description: A computed derivative — a Concept that appears in ≥3 episodes within a relic's visible window.
+    type: derived (not stored; recomputed)
+    formula: count(EpisodeConceptBond where episode.n <= relic.heard_n and concept = X) >= 3
+    invariants:
+      - never written to DB; always derived from underlying bonds
+
+# ---------------------------------------------------------------
+# CROSS-ENTITY LIFECYCLES
+# ---------------------------------------------------------------
+
+flows:
+
+  episode_publication:
+    actor: Host
+    steps:
+      - validate anchors don't conflict with existing concepts (key uniqueness)
+      - validate bridges reference published concepts
+      - create new Concept rows for fresh anchors
+      - create EpisodeConceptBond rows
+      - increment CanonicalRelic.version
+      - notify listeners
+
+  listener_progress:
+    actor: Listener
+    steps:
+      - listener marks episode N as heard
+      - PersonalRelic.heard_n = max(heard_n, N)
+      - recompute visible concepts
+      - recompute EmergentBridges
+      - persist to localStorage + (optional) cloud sync
+
+  vocabulary_correction:
+    actor: Host
+    steps:
+      - host realizes a Concept needs renaming
+      - append ConceptAlias with new label, effective_from = next_unpublished_episode_n
+      - existing PersonalRelics rendered with their era's label until they sync
+      - on sync, listener sees a "renamed" affordance
+
+# ---------------------------------------------------------------
+# OPEN QUESTIONS (gated on Phase I)
+# ---------------------------------------------------------------
+
+open_questions:
+  - Does the Listener entity need long-term identity, or is anonymous + localStorage sufficient for v1?
+  - Should Hosts be able to retract Concepts entirely, or only deprecate?
+  - Are EmergentBridges purely derived, or do listeners want to "save" / annotate them?
+  - Does a listener want to attach notes to bonds, or is the relic intentionally non-annotative?
+  - Cross-show concepts: is "Scaling Laws" the same concept across shows, or scoped per Show?

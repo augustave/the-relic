@@ -1,0 +1,230 @@
+# ER Schema — Phase II (speculative pre-work)
+# Permission-explicit. Tables + relations + CRUD matrix per role.
+# To be revised against Phase I evidence.
+
+status: speculative
+phase: II
+
+# ---------------------------------------------------------------
+# ROLES
+# ---------------------------------------------------------------
+
+roles:
+  Host:
+    scope: per-Show authoring authority
+    cardinality: 1 per Show (v1)
+  Listener:
+    scope: per-(Show, Listener) personal state
+    auth: anonymous by default; can register
+  Public:
+    scope: read-only access to CanonicalRelic
+    auth: none
+
+# ---------------------------------------------------------------
+# TABLES
+# ---------------------------------------------------------------
+
+tables:
+
+  shows:
+    pk: id (uuid)
+    columns:
+      id: uuid
+      slug: text unique not_null immutable
+      title: text not_null
+      host_id: uuid fk(hosts.id) not_null
+      canonical_relic_id: uuid fk(canonical_relics.id)
+      created_at: timestamptz not_null default now()
+    indexes: [slug, host_id]
+
+  hosts:
+    pk: id (uuid)
+    columns:
+      id: uuid
+      handle: text unique not_null
+      email: text unique
+      created_at: timestamptz not_null default now()
+
+  concepts:
+    pk: id (uuid)
+    columns:
+      id: uuid
+      key: text not_null         # 3-letter SHOUTCASE, e.g. "OOD"
+      show_id: uuid fk(shows.id) not_null
+      current_label: text not_null
+      label_version: int not_null default 1
+      created_in_episode_n: int not_null
+      deprecated: boolean not_null default false
+      deprecated_in_favor_of: uuid fk(concepts.id)
+      created_at: timestamptz not_null default now()
+    unique: [show_id, key]
+    indexes: [show_id, key, deprecated]
+
+  concept_aliases:
+    pk: composite(concept_id, effective_from_episode_n)
+    columns:
+      concept_id: uuid fk(concepts.id) not_null
+      label: text not_null
+      effective_from_episode_n: int not_null
+      effective_through_episode_n: int  # null = current
+      created_at: timestamptz not_null default now()
+    append_only: true
+    indexes: [concept_id]
+
+  episodes:
+    pk: id (uuid)
+    columns:
+      id: uuid
+      show_id: uuid fk(shows.id) not_null
+      n: int not_null
+      title: text not_null
+      blurb: text
+      released_at: timestamptz
+      status: enum [draft, scheduled, published, retracted] default 'draft'
+      audio_url: text
+      transcript_url: text
+      created_at: timestamptz not_null default now()
+    unique: [show_id, n]
+    indexes: [show_id, n, status]
+
+  episode_concept_bonds:
+    pk: composite(episode_id, concept_id)
+    columns:
+      episode_id: uuid fk(episodes.id) not_null on_delete=cascade
+      concept_id: uuid fk(concepts.id) not_null on_delete=restrict
+      role: enum [anchor, bridge] not_null
+      created_at: timestamptz not_null default now()
+    indexes: [episode_id, concept_id]
+
+  canonical_relics:
+    pk: id (uuid)
+    columns:
+      id: uuid
+      show_id: uuid fk(shows.id) unique not_null
+      version: int not_null default 0
+      last_published_at: timestamptz
+      created_at: timestamptz not_null default now()
+    invariant: version increments only on episode publish
+
+  listeners:
+    pk: id (uuid)
+    columns:
+      id: uuid
+      handle: text unique     # nullable for anonymous
+      email: text unique      # nullable
+      created_at: timestamptz not_null default now()
+
+  personal_relics:
+    pk: id (uuid)
+    columns:
+      id: uuid
+      listener_id: uuid fk(listeners.id) not_null
+      show_id: uuid fk(shows.id) not_null
+      heard_n: int not_null default 0
+      canonical_version_synced: int not_null default 0
+      mode: enum [personal, canonical] default 'personal'
+      reveal_state: float default 0.0
+      created_at: timestamptz not_null default now()
+      last_synced_at: timestamptz
+    unique: [listener_id, show_id]
+    invariant: heard_n <= canonical_version_synced
+
+# ---------------------------------------------------------------
+# CRUD PERMISSION MATRIX
+# ---------------------------------------------------------------
+# C = create, R = read, U = update, D = delete, - = denied
+
+permissions:
+
+  shows:
+    Host:     CRU-       # cannot delete; only archive
+    Listener: -R--       # public-readable
+    Public:   -R--
+
+  hosts:
+    Host:     -RU-       # own row only
+    Listener: -R--       # public handle only
+    Public:   -R--       # public handle only
+
+  concepts:
+    Host:     CRU-       # own show only; never delete (deprecate instead)
+    Listener: -R--       # own show subscriptions
+    Public:   -R--       # in published canonical
+
+  concept_aliases:
+    Host:     C-R-       # append-only; cannot update or delete
+    Listener: -R--
+    Public:   -R--
+
+  episodes:
+    Host:     CRU-       # own show; retraction = status update, not delete
+    Listener: -R--       # published only (status='published')
+    Public:   -R--       # published only
+
+  episode_concept_bonds:
+    Host:     CR-D       # delete allowed only on draft episodes; cascade on retract
+    Listener: -R--
+    Public:   -R--
+
+  canonical_relics:
+    Host:     -R--       # cannot mutate directly; only via episode publish
+    Listener: -R--
+    Public:   -R--
+    System:   CRUD       # internal increment
+
+  listeners:
+    Host:     -R--       # public handle only
+    Listener: -RU-       # own row only
+    Public:   ----
+
+  personal_relics:
+    Host:     -R--       # aggregate stats only
+    Listener: CRU-       # own row only; cannot delete (use abandon flag)
+    Public:   ----
+
+# ---------------------------------------------------------------
+# CRITICAL CONSTRAINTS
+# ---------------------------------------------------------------
+
+constraints:
+
+  - id: C-001
+    rule: concept.key is immutable
+    enforced_by: db unique constraint + app-level guard
+    rationale: bonds reference concept_id; renames must go through aliases
+
+  - id: C-002
+    rule: concept_aliases is append-only
+    enforced_by: app layer (no UPDATE/DELETE granted)
+    rationale: historical labels needed for per-era listener rendering
+
+  - id: C-003
+    rule: episodes.n is monotonic per show
+    enforced_by: app layer on publish
+    rationale: heard_n ordering presumes monotonicity
+
+  - id: C-004
+    rule: personal_relics.heard_n <= canonical_relics.version
+    enforced_by: db trigger or app guard
+    rationale: cannot mark heard an episode that does not exist
+
+  - id: C-005
+    rule: episode_concept_bonds cannot have role=both for same (episode, concept)
+    enforced_by: composite PK
+    rationale: anchor vs bridge is exclusive
+
+  - id: C-006
+    rule: retracted episodes remain in db but are filtered from all listener reads
+    enforced_by: query layer (status != 'retracted')
+    rationale: governance — preserve audit trail; deletion would break history
+
+# ---------------------------------------------------------------
+# DEFERRED (post-v1)
+# ---------------------------------------------------------------
+
+deferred:
+  - multi-host shows
+  - cross-show concept federation (one "OOD" across all shows)
+  - listener annotations on bonds
+  - listener-to-listener relic sharing
+  - cloud sync for personal_relics (v1 uses localStorage + JSON export)

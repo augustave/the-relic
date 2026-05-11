@@ -297,6 +297,39 @@
   .progress-wrap{position:fixed;top:0;left:0;right:0;height:3px;z-index:7;background:transparent;}
   .progress{height:100%;background:var(--rust);opacity:0.7;}
 
+  /* A11y: reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .stamp-btn:hover { transform: none !important; }
+    .card, .heard-label, .emergence, #tooltip, #detail { transform: none !important; }
+    .deco.coffee-ring, .deco.coffee-ring-2 { display: none; }
+  }
+
+  /* A11y: focus rings */
+  button:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+  input[type=range]:focus-visible { outline: 2px solid var(--rust); outline-offset: 4px; }
+
+  /* Keyboard help dialog */
+  .kbd-help{
+    position:fixed;z-index:30;
+    background:var(--paper);border:1px solid var(--ink);
+    padding:18px 22px;font-family:"Courier Prime",monospace;font-size:11px;line-height:1.7;
+    color:var(--ink);box-shadow:4px 5px 0 rgba(100,70,25,0.28);
+    left:50%;top:50%;transform:translate(-50%,-50%) rotate(-0.8deg);
+    max-width:380px;display:none;
+  }
+  .kbd-help.open{display:block;}
+  .kbd-help h3{font-family:"IM Fell English SC",serif;color:var(--navy);margin:0 0 10px;font-size:18px;letter-spacing:0.04em;}
+  .kbd-help kbd{
+    font-family:"Special Elite",monospace;font-size:10px;
+    background:var(--paper);border:1px solid var(--ink);padding:1px 6px;border-radius:2px;
+    box-shadow:1px 1px 0 var(--ink-dust);min-width:18px;display:inline-block;text-align:center;
+  }
+  .kbd-help-row{display:flex;justify-content:space-between;align-items:center;margin:5px 0;gap:14px;}
+  .kbd-help-row span:last-child{color:var(--ink-dust);}
+  .kbd-help-backdrop{position:fixed;inset:0;z-index:29;background:rgba(10,8,4,0.45);display:none;}
+  .kbd-help-backdrop.open{display:block;}
+  .kbd-help-close{float:right;cursor:pointer;color:var(--rust);font-family:"IM Fell English SC",serif;font-size:18px;line-height:1;margin-left:8px;}
+
   /* SPECIMEN NUMBER CORNER */
   .corner-spec{
     position:fixed;top:18px;left:22px;z-index:7;
@@ -316,7 +349,24 @@
 <div class="paper-grain"></div>
 <div class="paper-foxing"></div>
 
-<canvas id="stage"></canvas>
+<canvas id="stage" tabindex="0" role="img"
+  aria-label="Interactive relic graph. Episode tiles and concept doodles dock through shared concepts. Press the question mark key for keyboard shortcuts."></canvas>
+
+<!-- Keyboard help dialog -->
+<div class="kbd-help-backdrop" id="kbdBackdrop"></div>
+<div class="kbd-help" id="kbdHelp" role="dialog" aria-label="Keyboard shortcuts">
+  <span class="kbd-help-close" id="kbdClose">×</span>
+  <h3>Keyboard Shortcuts</h3>
+  <div class="kbd-help-row"><span>Previous episode</span><span><kbd>←</kbd></span></div>
+  <div class="kbd-help-row"><span>Next episode</span><span><kbd>→</kbd></span></div>
+  <div class="kbd-help-row"><span>Jump back 5</span><span><kbd>Shift</kbd> + <kbd>←</kbd></span></div>
+  <div class="kbd-help-row"><span>Jump ahead 5</span><span><kbd>Shift</kbd> + <kbd>→</kbd></span></div>
+  <div class="kbd-help-row"><span>Toggle Personal / Canonical</span><span><kbd>M</kbd></span></div>
+  <div class="kbd-help-row"><span>Dissolve / Restore</span><span><kbd>D</kbd> or <kbd>Space</kbd></span></div>
+  <div class="kbd-help-row"><span>Export relic</span><span><kbd>E</kbd></span></div>
+  <div class="kbd-help-row"><span>Close detail / dialog</span><span><kbd>Esc</kbd></span></div>
+  <div class="kbd-help-row"><span>Show this help</span><span><kbd>?</kbd></span></div>
+</div>
 
 <!-- ENGRAVED EAGLE -->
 <svg class="deco eagle" viewBox="0 0 120 120" aria-hidden="true">
@@ -413,7 +463,7 @@
       <button id="revealBtn" class="stamp-btn">Dissolve the Podcast</button>
       <button id="exportBtn" class="stamp-btn navy">Export</button>
     </div>
-    <div class="hint">Click a node · tiles open their card · concepts list every episode that touched them.</div>
+    <div class="hint">Click a node · tiles open their card · concepts list every episode that touched them. Press <kbd style="font-family:'Special Elite',monospace;border:1px solid var(--ink-dust);padding:0 4px;font-size:9px;">?</kbd> for keyboard shortcuts.</div>
   </div>
 
   <div style="width:160px;"></div>
@@ -611,6 +661,54 @@ stage.addEventListener('click', () => {
   else { selected = null; closeDetail(); }
 });
 stage.addEventListener('mouseleave', () => { mouse.x=-9999; mouse.y=-9999; });
+
+// -------------------------------------------------------------
+// A11y: reduced motion preference
+// -------------------------------------------------------------
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+let prefersReducedMotion = reducedMotion.matches;
+reducedMotion.addEventListener('change', e => { prefersReducedMotion = e.matches; });
+
+// -------------------------------------------------------------
+// Keyboard navigation
+// -------------------------------------------------------------
+function clampHeard(v){ return Math.max(1, Math.min(EPISODES.length, v)); }
+function setHeard(n){
+  heardN = clampHeard(n);
+  document.getElementById('heardRange').value = heardN;
+  if (mode === 'canonical') setMode('personal');
+  updateHeardLabel(); refreshStats();
+}
+function toggleMode(){ setMode(mode === 'personal' ? 'canonical' : 'personal'); }
+function toggleReveal(){
+  revealTarget = revealTarget > 0.5 ? 0 : 1;
+  const btn = document.getElementById('revealBtn');
+  btn.classList.toggle('active', revealTarget > 0.5);
+  btn.textContent = revealTarget > 0.5 ? 'Restore Podcast' : 'Dissolve the Podcast';
+}
+function showKbdHelp(show){
+  document.getElementById('kbdHelp').classList.toggle('open', show);
+  document.getElementById('kbdBackdrop').classList.toggle('open', show);
+}
+document.getElementById('kbdClose').onclick = () => showKbdHelp(false);
+document.getElementById('kbdBackdrop').onclick = () => showKbdHelp(false);
+
+document.addEventListener('keydown', e => {
+  // ignore when typing in inputs
+  if (e.target.matches('input, textarea')) return;
+  // Esc closes dialogs / clears selection
+  if (e.key === 'Escape'){
+    if (document.getElementById('kbdHelp').classList.contains('open')){ showKbdHelp(false); return; }
+    if (selected){ selected = null; closeDetail(); return; }
+    return;
+  }
+  if (e.key === '?'){ showKbdHelp(true); e.preventDefault(); return; }
+  if (e.key === 'ArrowLeft'){  setHeard(heardN - (e.shiftKey?5:1)); e.preventDefault(); return; }
+  if (e.key === 'ArrowRight'){ setHeard(heardN + (e.shiftKey?5:1)); e.preventDefault(); return; }
+  if (e.key === 'm' || e.key === 'M'){ toggleMode(); return; }
+  if (e.key === 'd' || e.key === 'D' || e.key === ' '){ toggleReveal(); e.preventDefault(); return; }
+  if (e.key === 'e' || e.key === 'E'){ document.getElementById('exportBtn').click(); return; }
+});
 
 document.getElementById('modePersonal').onclick = () => setMode('personal');
 document.getElementById('modeCanonical').onclick = () => setMode('canonical');
@@ -962,8 +1060,9 @@ function computeCoOccurrence(){
 }
 
 function draw(){
-  // reveal easing
-  reveal += (revealTarget - reveal)*0.08;
+  // reveal easing — snap if user prefers reduced motion
+  if (prefersReducedMotion){ reveal = revealTarget; }
+  else { reveal += (revealTarget - reveal)*0.08; }
 
   // subtle cream trail (preserves ghosting of movement)
   ctx.fillStyle = 'rgba(235,224,189,0.55)';
